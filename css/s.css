@@ -1,0 +1,74 @@
+
+.ro-loading {
+	background: transparent url("clock.gif") 0 0 no-repeat;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 64px;
+	height: 64px;
+	margin-left: -32px;
+	margin-top: -32px;
+	pointer-events: none;
+}
+
+.ro-container {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	overflow: hidden;
+	opacity: 0;
+	transition: opacity 1s ease;
+}
+
+.ro-map {
+	height: 100%;
+}
+
+.ro-overlay {
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: rgba(255,255,255,0.5);
+}
+
+.ro-sheet {
+	position: absolute;
+	z-index: 2;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	background-color: #ffffff;
+	border-radius: 2px;
+	box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+.ro-sheet-inner {
+	margin: 0 10px;
+}
+.ro-sheet-to-bottom {
+	position: absolute;
+	bottom: 0;
+}
+
+
+
+
+.ro-welcome-sheet {
+	width: 600px;
+	height: 400px;
+}
+.ro-welcome-offset {
+	margin-top: 30px;
+}
+.ro-off {
+	color: #909090;
+}
+.ro-off a {
+	color: #628baa;
+}

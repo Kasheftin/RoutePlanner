@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Route planner is a clone of google Maps Engine service https://mapsengine.google.com.">
+    <meta name="author" content="Alexey Kuznetsov">
+    <title>Route planner v0.1</title>
+    <link rel="stylesheet" media="all" href="lib/bootstrap-3.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" media="all" href="lib/whhg-font/css/whhg.css">
+    <link rel="stylesheet" media="all" href="css/s.css">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="lib/bootstrap-3.0.0/assets/js/html5shiv.js"></script>
+      <script src="lib/bootstrap-3.0.0/assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="ro-loading"></div>
+    <div class="ro-container" data-bind="visible:isLoaded(),style:{opacity:isReady()?'1':'0'}" style="display:none;">
+      <div id="map" class="ro-map"></div>
+
+      <!-- Welcome screen overlay -->
+      <!-- ko ifnot: currentProject -->
+        <div class="ro-overlay">
+          <div class="ro-sheet ro-welcome-sheet">
+            <div class="ro-sheet-inner">
+              <h1>Route planner v0.1</h1>
+              <p class="lead">Simple free tool for planning routes with unlimited layers.</p>
+              <p class="ro-off">It was written for a couple of weekends, and it uses <a href="http://requirejs.org/">require</a>, <a href="https://developers.google.com/maps/">google maps</a>, <a href="http://jquery.com/">jquery<a >, <a href="http://jqueryui.com/">jquery-ui</a>, <a href="http://knockoutjs.com/">knockout</a>, <a href="https://github.com/rniemeyer/knockout-sortable">knockout-sortable</a>, <a href="http://getbootstrap.com">bootstrap</a>. Front-end only, no own server required.</p>
+              <!-- ko with: projectManager -->
+                <!-- ko if: message -->
+                  <div class="alert alert-info ro-welcome-offset">
+                    <p data-bind="text:message"></p>
+                    <div class="clearfix">
+                      <div class="btn-group pull-right">
+                        <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page',null)">Close</a>
+                      </div>
+                    </div>
+                  </div>
+                <!-- /ko -->
+                <!-- ko ifnot: message -->
+                  <!-- ko ifnot: page -->
+                    <div class="btn-group ro-welcome-offset btn-group-lg btn-group-justified">
+                      <a class="btn btn-default" role="button" data-bind="click:createProject">Create new map</a>
+                      <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page','projectsList'),css:{disabled:!cookiesEnabled()}">Open from cache</a>
+                      <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page','loadProject')">Load a map</a>
+                    </div>
+                    <div class="ro-sheet-to-bottom">
+                      <p>For saving map in browser cache You have to enable storing data on Your computer.</p>
+                      <p class="checkbox"><label><input type="checkbox" data-bind="checked:cookiesEnabled"> Enable cookies and local storage</label></p>
+                    </div>
+                  <!-- /ko -->
+                  <!-- ko if: page() == "loadProject" -->
+                    <div class="ro-welcome-offset">
+                      <div class="form-group">
+                        <textarea class="form-control" rows="6" placeholder="Paste here the project's data" data-bind="value:loadProjectData"></textarea>
+                      </div>
+                      <div class="form-group pull-right">
+                        <a class="btn btn-primary" role="button" data-bind="click:loadProject">Load</a>
+                        <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page',null)">Cancel</a>
+                      </div>
+                    </div>
+                  <!-- /ko -->
+                <!-- /ko -->
+              <!-- /ko -->
+            </div>
+          </div>
+        </div>
+      <!-- /ko -->
+
+    </div>
+    <script type="text/javascript" src="lib/require-2.1.8.min.js" data-main="js/init"></script>
+  </body>
+</html>
