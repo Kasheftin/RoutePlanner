@@ -73,11 +73,13 @@ define(["jquery","knockout","eventEmitter","config","layer"],function($,ko,Event
 	}
 
 	Project.prototype.exportProject = function() {
-		var exportFields = "name description layers".split(/ /);
-		var data = ko.toJS(this);
-		var exportData = {};
-		exportFields.forEach(function(fieldName) {
-			exportData[fieldName] = data[fieldName];
+		var exportData = {
+			name: this.name(),
+			description: this.description(),
+			layers: []
+		}
+		this.layers().forEach(function(layer) {
+			exportData.layers.push(layer.exportLayer());
 		});
 		if (this.selectedLayer()) {
 			exportData.selectedLayerId = this.layers().indexOf(this.selectedLayer());

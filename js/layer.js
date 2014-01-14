@@ -44,6 +44,17 @@ define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
 		this.isVisible(false);
 	}
 
+	Layer.prototype.exportLayer = function() {
+		var exportData = {
+			name: this.name(),
+			isVisible: this.isVisible(),
+			isExpanded: this.isExpanded(),
+			shapes: []
+		}
+		// TODO: export shapes
+		return exportData;
+	}
+
 	$.extend(Layer.prototype,EventEmitter.prototype);
 
 	return Layer;
