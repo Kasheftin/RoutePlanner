@@ -20,11 +20,159 @@
     <div class="ro-container" data-bind="visible:isLoaded(),style:{opacity:isReady()?'1':'0'}" style="display:none;">
       <div id="map" class="ro-map"></div>
 
+
+      <!-- ko with: currentProject -->
+
+        <!-- Main sheet -->
+        <div class="ro-project">
+          <div class="ro-project-inner" data-bind="click:deselectLayer">
+            <h4 data-bind="text:name()||'-- No name --'"></h4>
+            <p data-bind="text:description"></p>
+            <div class="ro-project-add-layer"><a href="#" data-bind="click:addLayer,clickBubble:false" title="Add layer">Add layer</a></div>
+          </div>
+          <div class="ro-controls ro-project-settings-controls">
+            <a class="glyphicon glyphicon-floppy-disk" href="#" data-bind="click:exportProject" title="Save map"></a>
+            <a class="glyphicon glyphicon-cog" href="#" data-bind="click:editSettings" title="Open map settings"></a>
+            <a class="glyphicon glyphicon-remove" href="#" data-bind="click:closeProject" title="Close map"></a>
+          </div>
+          <div class="ro-layers" data-bind="sortable:{data:layers,options:{helper:'ro-layer-drag'}}">
+            <div class="ro-layer" data-bind="css:{'ro-layer-active':$parent.isLayerSelected($data)},click:$parent.selectLayer.bind($parent,$data)">
+              <div class="ro-layer-header">
+                <div class="ro-controls ro-controls-aleft">
+                  <a class="glyphicon icon-calcminus" href="#" data-bind="visible:isExpanded(),click:contract,clickBubble:false" title="Contract layer"></a>
+                  <a class="glyphicon icon-calcplus" href="#" data-bind="visible:!isExpanded(),click:expand,clickBubble:false" title="Expand layer"></a>
+                </div>
+                <span data-bind="text:name()||'-- Empty name --'"></span>
+                <div class="ro-controls ro-controls-aright">
+                  <a class="glyphicon glyphicon-cog" href="#" data-bind="visible:$parent.isLayerSelected($data),click:editSettings,clickBubble:false" title="Edit layer settings"></a>
+                  <a class="glyphicon glyphicon-check" href="#" data-bind="visible:isVisible,click:hide,clickBubble:false" title="Hide layer"></a>
+                  <a class="glyphicon glyphicon-unchecked" href="#" data-bind="visible:!isVisible(),click:show,clickBubble:false" title="Show layer"></a>
+                </div>
+              </div>
+              <!-- ko if: isExpanded -->
+                <div class="ro-layer-body">
+                  <!-- ko if: shapes().length == 0 -->
+                    <div class="ro-layer-body-empty">-- Empty --</div>
+                  <!-- /ko -->
+                  <!-- ko if: shapes().length > 0 -->
+                    <div class="ro-layer-body-empty">-- Not empty --</div>
+                  <!-- /ko -->
+                </div>
+              <!-- /ko -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit layer settings -->
+        <!-- ko with: selectedLayer -->
+        <!-- ko with: settings2edit -->
+          <div class="ro-overlay">
+            <div class="ro-dialog ro-edit-layer-dialog">
+              <div class="modal-header">
+                <button class="close" data-bind="click:$parent.close.bind($parent)">&times;</button>
+                <h4 class="modal-title">Layer settings</h4>
+              </div>
+              <div class="modal-body">
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <label for="inputProjectName" class="control-label col-sm-2">Name</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="inputProjectName" placeholder="Project name" data-bind="value:name">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" data-bind="checked:isVisible"> Visible
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button class="btn btn-danger" data-bind="click:$parent.destroyLayer.bind($parent)">Delete layer</button>
+                    </div>
+                  </div> 
+                </div>
+              </div>
+              <div class="ro-dialog-to-bottom">
+                <div class="ro-window-buttons modal-footer">
+                  <button class="btn btn-primary" data-bind="click:$parent.saveSettings.bind($parent)">Save</button>
+                  <button class="btn btn-default" data-bind="click:$parent.close.bind($parent)">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <!-- /ko -->
+        <!-- /ko -->
+
+        <!-- Edit project overlay -->
+        <!-- ko with: settings2edit -->
+          <div class="ro-overlay">
+            <div class="ro-dialog ro-edit-project-dialog">
+              <div class="modal-header">
+                <button class="close" data-bind="click:$parent.close.bind($parent)">&times;</button>
+                <h4 class="modal-title">Settings</h4>
+              </div>
+              <div class="modal-body">
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <label for="inputProjectName" class="control-label col-sm-2">Name</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="inputProjectName" placeholder="Project name" data-bind="value:name">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputProjectDescription" class="control-label col-sm-2">Description</label>
+                    <div class="col-sm-10">
+                      <textarea class="form-control" id="inputProjectDescription" data-bind="value:description"></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="ro-dialog-to-bottom">
+                <div class="ro-window-buttons modal-footer">
+                  <button class="btn btn-primary" data-bind="click:$parent.saveSettings.bind($parent)">Save</button>
+                  <button class="btn btn-default" data-bind="click:$parent.close.bind($parent)">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <!-- /ko -->
+
+        <!-- Export project overlay -->
+        <!-- ko if: exportData -->
+          <div class="ro-overlay">
+            <div class="ro-dialog ro-export-project-dialog">
+              <div class="modal-header">
+                <button class="close" data-bind="click:close">&times;</button>
+                <h4 class="modal-title">Export map data</h4>
+              </div>
+              <div class="modal-body">
+                <div class="form-group">
+                  <textarea class="form-control" data-bind="value:exportData" readonly rows="10"></textarea>
+                </div>
+              </div>
+              <div class="ro-dialog-to-bottom">
+                <div class="ro-window-buttons modal-footer">
+                  <button class="btn btn-default" data-bind="click:close">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <!-- /ko -->
+
+      <!-- /ko -->
+
+
+
+
       <!-- Welcome screen overlay -->
       <!-- ko ifnot: currentProject -->
         <div class="ro-overlay">
-          <div class="ro-sheet ro-welcome-sheet">
-            <div class="ro-sheet-inner">
+          <div class="ro-dialog ro-welcome-dialog">
+            <div class="ro-dialog-inner">
               <h1>Route planner v0.1</h1>
               <p class="lead">Simple free tool for planning routes with unlimited layers.</p>
               <p class="ro-off">It was written for a couple of weekends, and it uses <a href="http://requirejs.org/">require</a>, <a href="https://developers.google.com/maps/">google maps</a>, <a href="http://jquery.com/">jquery<a >, <a href="http://jqueryui.com/">jquery-ui</a>, <a href="http://knockoutjs.com/">knockout</a>, <a href="https://github.com/rniemeyer/knockout-sortable">knockout-sortable</a>, <a href="http://getbootstrap.com">bootstrap</a>. Front-end only, no own server required.</p>
@@ -46,7 +194,7 @@
                       <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page','projectsList'),css:{disabled:!cookiesEnabled()}">Open from cache</a>
                       <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page','loadProject')">Load a map</a>
                     </div>
-                    <div class="ro-sheet-to-bottom">
+                    <div class="ro-dialog-to-bottom">
                       <p>For saving map in browser cache You have to enable storing data on Your computer.</p>
                       <p class="checkbox"><label><input type="checkbox" data-bind="checked:cookiesEnabled"> Enable cookies and local storage</label></p>
                     </div>
@@ -68,6 +216,7 @@
           </div>
         </div>
       <!-- /ko -->
+
 
     </div>
     <script type="text/javascript" src="lib/require-2.1.8.min.js" data-main="js/init"></script>

@@ -1,4 +1,4 @@
-define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
+define(["jquery","knockout","eventEmitter","config"],function($,ko,EventEmitter,config) {
 	var ProjectManager = function(options) {
 		var self = this;
 		for (var i in options) 
@@ -37,8 +37,9 @@ define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
 	}
 
 	ProjectManager.prototype.createProject = function() {
-		this.projects.push({});
-		this.emit("setProject",{},this.projects().length-1);
+		var data = config.newProject;
+		this.projects.push(data);
+		this.emit("setProject",data,this.projects().length-1);
 	}
 
 	ProjectManager.prototype.loadProject = function() {

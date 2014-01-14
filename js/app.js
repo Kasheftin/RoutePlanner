@@ -1,4 +1,4 @@
-define(["jquery","knockout","gmaps","config","projectManager","project","jquery.cookie"],function($,ko,gmaps,config,ProjectManager,Project) {
+define(["jquery","knockout","gmaps","config","projectManager","project","jquery.cookie","knockout.sortable"],function($,ko,gmaps,config,ProjectManager,Project) {
 
 	var App = function() {
 		var self = this;
@@ -19,6 +19,9 @@ define(["jquery","knockout","gmaps","config","projectManager","project","jquery.
 			var project = new Project(data);
 			project.on("change",function() {
 				self.projectManager.saveProject(project,index);
+			});
+			project.on("close",function() {
+				self.currentProject(null);
 			});
 			self.currentProject(project);
 		});

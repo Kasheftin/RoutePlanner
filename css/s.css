@@ -36,7 +36,7 @@
 	background-color: rgba(255,255,255,0.5);
 }
 
-.ro-sheet {
+.ro-dialog {
 	position: absolute;
 	z-index: 2;
 	top: 0;
@@ -47,28 +47,87 @@
 	background-color: #ffffff;
 	border-radius: 2px;
 	box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-}
-.ro-sheet-inner {
-	margin: 0 10px;
-}
-.ro-sheet-to-bottom {
-	position: absolute;
-	bottom: 0;
-}
-
-
-
-
-.ro-welcome-sheet {
 	width: 600px;
 	height: 400px;
 }
-.ro-welcome-offset {
-	margin-top: 30px;
+.ro-dialog-inner {
+	margin: 0 10px;
 }
+.ro-dialog-to-bottom {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+}
+
+.ro-controls a {
+	color: #555555;
+	font-size: 16px;
+}
+.ro-controls a:hover {
+	text-decoration: none;
+	color: #111111;
+}
+.ro-controls-aleft {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+.ro-controls-aright {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
 .ro-off {
 	color: #909090;
 }
 .ro-off a {
 	color: #628baa;
+}
+
+.ro-project {
+	position: absolute;
+	z-index: 1;
+	top: 30px;
+	left: 30px;
+	width: 320px;
+	background-color: #ffffff;
+	border-radius: 2px;
+	box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+.ro-project-inner {
+	margin: 0 10px;
+}
+.ro-project-settings-controls {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+}
+.ro-project-add-layer {
+	margin-bottom: 10px;
+}
+
+.ro-layer {
+	background-color: #ffffff;
+	border-top: 1px solid #e5e5e5;
+	border-left: 4px solid transparent;
+	padding: 10px 10px 10px 6px;
+}
+.ro-layer:hover {
+	border-left: 4px solid #e5e5e5;
+}
+.ro-layer.ro-layer-active {
+	border-left: 4px solid #4d90fe;
+}
+.ro-layer-drag {
+	border: 1px solid #e5e5e5;
+}
+.ro-layer-header {
+	position: relative;
+	padding-left: 20px;
+}
+
+
+.ro-welcome-offset {
+	margin-top: 30px;
 }
