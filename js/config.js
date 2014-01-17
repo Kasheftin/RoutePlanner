@@ -27,6 +27,33 @@ define({
 		isExpanded: true,
 		shapes: []
 	},
+	tools: {
+		moveTool: {
+			icon: "icon-handdrag",
+			title: "Move tool",
+			isSelectable: true
+		},
+		addMarkerTool: {
+			icon: "icon-map-marker",
+			title: "Add marker",
+			isSelectable: true
+		},
+		addLineTool: {
+			icon: "icon-line",
+			title: "Add polyline",
+			isSelectable: true
+		},
+		addDirectionTool: {
+			icon: "icon-directions",
+			title: "Add route",
+			isSelectable: false
+		}
+	},
+	newMarker: {
+		type: "marker",
+		name: "Untitled point",
+		icon: "icon-map-marker"
+	},
 	defaultSearchZoom: 17,
 	cookiesEnabled: false
 });

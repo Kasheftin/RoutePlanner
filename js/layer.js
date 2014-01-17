@@ -7,6 +7,15 @@ define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
 		this.settings2edit = ko.observable(null);
 	}
 
+	Layer.prototype.addShape = function(shape) {
+		this.shapes.unshift(shape);
+	}
+
+	Layer.prototype.deleteShape = function(shape) {
+		var i = this.shapes().indexOf(shape);
+		if (i>=0) this.shapes.splice(i,1);
+	}
+
 	Layer.prototype.editSettings = function() {
 		this.settings2edit({
 			name: ko.observable(this.name()),
@@ -34,6 +43,10 @@ define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
 
 	Layer.prototype.contract = function() {
 		this.isExpanded(false);
+	}
+
+	Layer.prototype.switchExpand = function() {
+		this.isExpanded(!this.isExpanded());
 	}
 
 	Layer.prototype.show = function() {

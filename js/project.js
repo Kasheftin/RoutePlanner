@@ -1,8 +1,9 @@
-define(["jquery","knockout","eventEmitter","config","layer"],function($,ko,EventEmitter,config,Layer) {
+define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],function($,ko,EventEmitter,config,Layer,Toolbar,Shape) {
 	var Project = function(data) {
 		var self = this;
 		this.name = ko.observable(data.name);
 		this.description = ko.observable(data.description);
+		this.map = data.map;
 
 		this.layers = ko.observableArray([]);
 		data.layers.forEach(function(layer) {
@@ -16,6 +17,65 @@ define(["jquery","knockout","eventEmitter","config","layer"],function($,ko,Event
 
 		this.settings2edit = ko.observable(null);
 		this.exportData = ko.observable(null);
+
+		this.q = ko.observable("");
+
+		this.selectedShape = ko.observable(null);
+
+		this.toolbar = new Toolbar({
+			layer: this.selectedLayer,
+			map: this.map
+		});
+		this.toolbar.on("addMarker",function(e) {
+			if (!self.selectedLayer()) return;
+			var shape = new Shape($.extend({},config.newMarker,{
+				data: {
+					lat: e.latLng.lat(),
+					lng: e.latLng.lng()
+				},
+				isVisible: true,
+				map: self.map,
+				layer: self.selectedLayer()
+			}));
+			self.selectedLayer().addShape(shape);
+			self.selectedShape(shape);
+			shape.on("editShape",function() {
+				self.editShape(shape);
+			});
+			shape.on("deleteShape",function() {
+				shape.clear();
+				shape.layer && shape.layer.deleteShape(shape);
+			});
+			shape.redraw();
+			self.editShape(shape);
+		});
+
+
+		this.dragShapeCallback = function(data) {
+			var draggedShape = data.item;
+			var layerIndex = $(this).data("layer-index");
+			if (draggedShape && layerIndex>=0)
+				draggedShape.layer = self.layers()[layerIndex];
+			console.log(draggedShape.layer,layerIndex);
+		}
+	}
+
+
+	Project.prototype.editShape = function(shape) {
+		this.selectShape(shape);
+		this.emit("openInfoWindow",{
+			openAt: shape.model,
+			type: "editShape",
+			shape: shape
+		});
+	}
+
+	Project.prototype.selectShape = function(shape) {
+		this.selectedShape(shape);
+	}
+
+	Project.prototype.clearSearch = function() {
+		this.q("");
 	}
 
 	Project.prototype.addLayer = function() {

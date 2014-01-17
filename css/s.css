@@ -1,6 +1,15 @@
 
+.ro-loading-container {
+	position: absolute;
+	z-index: 100;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: #ffffff;
+}
 .ro-loading {
-	background: transparent url("clock.gif") 0 0 no-repeat;
+	background: #ffffff url("clock.gif") 0 0 no-repeat;
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -8,7 +17,6 @@
 	height: 64px;
 	margin-left: -32px;
 	margin-top: -32px;
-	pointer-events: none;
 }
 
 .ro-container {
@@ -18,8 +26,6 @@
 	left: 0;
 	right: 0;
 	overflow: hidden;
-	opacity: 0;
-	transition: opacity 1s ease;
 }
 
 .ro-map {
@@ -59,11 +65,11 @@
 	width: 100%;
 }
 
-.ro-controls a {
+.ro-controls,.ro-controls a {
 	color: #555555;
 	font-size: 16px;
 }
-.ro-controls a:hover {
+.ro-controls:hover,.ro-controls a:hover {
 	text-decoration: none;
 	color: #111111;
 }
@@ -113,6 +119,8 @@
 	border-top: 1px solid #e5e5e5;
 	border-left: 4px solid transparent;
 	padding: 10px 10px 10px 6px;
+	font-size: 13px;
+	color: #505050;
 }
 .ro-layer:hover {
 	border-left: 4px solid #e5e5e5;
@@ -120,15 +128,131 @@
 .ro-layer.ro-layer-active {
 	border-left: 4px solid #4d90fe;
 }
-.ro-layer-drag {
+.ro-layer.ui-draggable {
 	border: 1px solid #e5e5e5;
 }
 .ro-layer-header {
 	position: relative;
-	padding-left: 20px;
+	font-weight: bold;
+}
+.ro-layer-title {
+	color: #505050;
+	outline: 0;
+}
+.ro-layer-title:hover {
+	text-decoration: none;
+	color: #111111;
+}
+.ro-layer-body {
+	padding-left: 10px;
+	padding-top: 4px;
+}
+.ro-layer-body-empty {
+	position: absolute;
+	margin-top: 15px;
 }
 
+.ro-search {
+	position: absolute;
+	z-index: 1;
+	top: 30px;
+	left: 370px;
+	width: 400px;
+	background-color: #ffffff;
+	border-radius: 2px;
+	box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+	cursor: default;
+}
+.ro-search input {
+	border: 1px solid #ffffff;
+	box-shadow: none;
+	border-radius: 2px;
+}
+.ro-search input:focus {
+	border: 1px solid #66afe9;
+}
+.ro-search-clear {
+	line-height: 30px;
+	padding: 0 5px;
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.ro-toolbar {
+	position: absolute;
+	top: 75px;
+	left: 370px;
+}
+.ro-toolbar > a {
+	display: inline-block;
+	background-color: #ffffff;
+	padding: 2px 5px 1px;
+	border-radius: 2px;
+	border: 1px solid #ffffff;
+	margin-right: 5px;
+	box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+	cursor: pointer;
+	outline: 0;
+}
+.ro-toolbar > a:hover {
+	border: 1px solid #a0a0a0;
+}
+.ro-toolbar > a.disabled {
+	box-shadow: none;
+	color: #a0a0a0;
+	cursor: not-allowed;
+}
+.ro-toolbar > a.disabled:hover {
+	border: 1px solid #ffffff;
+}
+.ro-toolbar > a.ro-tool-selected {
+	background-color: #a0a0a0;
+	color: #ffffff;
+	border: 1px solid #858585;
+}
+.ro-toolbar > a.ro-tool-selected:hover {
+	border: 1px solid #505050;
+}
 
 .ro-welcome-offset {
 	margin-top: 30px;
+}
+
+.ro-shapes {
+	border-top: 1px dotted #dedede;
+	padding-top: 10px;
+	padding-bottom: 5px;
+	min-height: 46px;
+}
+.ro-shapes > a {
+	display: block;
+	padding: 5px;
+	margin-bottom: 1px;
+	outline: 0;
+	text-decoration: none;
+}
+.ro-shapes > a.ro-shape-active {
+	font-weight: bold;
+	background-color: #f0f0f0;
+}
+.ro-shapes > a:hover {
+	background-color: #f0f0f0;
+	text-decoration: none;
+}
+
+.ro-iwnd {
+	width: 600px;
+}
+.ro-iwnd .modal-body {
+	padding-bottom: 10px;
+}
+.ro-iwnd .modal-footer {
+	border: 0;
+	padding-top: 0;
+	margin-top: 0;
+}
+
+.bordered {
+	border: 1px solid #000000;
 }

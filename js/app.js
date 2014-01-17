@@ -1,9 +1,9 @@
-define(["jquery","knockout","gmaps","config","projectManager","project","jquery.cookie","knockout.sortable"],function($,ko,gmaps,config,ProjectManager,Project) {
+define(["jquery","knockout","gmaps","config","projectManager","project","infoWindow","jquery.cookie","knockout.sortable","utils"],function($,ko,gmaps,config,ProjectManager,Project,InfoWindow) {
 
 	var App = function() {
 		var self = this;
-		this.isLoaded = ko.observable(false);
 		this.isReady = ko.observable(false);
+		this.map = ko.observable(null);
 
 		this.cookiesEnabled = ko.observable($.cookie("cookiesEnabled")!=null?$.cookie("cookiesEnabled"):config.cookiesEnabled);
 		this.cookiesEnabled.subscribe(function(b) {
@@ -16,6 +16,7 @@ define(["jquery","knockout","gmaps","config","projectManager","project","jquery.
 			cookiesEnabled: this.cookiesEnabled
 		});
 		this.projectManager.on("setProject",function(data,index) {
+			data.map = self.map;
 			var project = new Project(data);
 			project.on("change",function() {
 				self.projectManager.saveProject(project,index);
@@ -23,41 +24,38 @@ define(["jquery","knockout","gmaps","config","projectManager","project","jquery.
 			project.on("close",function() {
 				self.currentProject(null);
 			});
+			project.on("openInfoWindow",function(data) {
+				self.infoWindow && self.infoWindow.openWithData(data);
+			});
 			self.currentProject(project);
 		});
-	}
 
-	App.prototype.afterInit = function() {
-		this.infoWindow = new gmaps.InfoWindow({content:$("#infoWindow")[0]});
-		this.searchInput = $("#search")[0];
-		this.isReady(true);
 	}
 
 	App.prototype.restoreMapPosition = function() {
-		if (this.map) {
+		if (this.map()) {
 			var ar = ($.cookie("mapPosition")||"").split(/,/);
-			this.map.setCenter(new gmaps.LatLng(ar[0]||config.startPosition.lat,ar[1]||config.startPosition.lng));
-			this.map.setZoom(Math.floor(ar[2])||config.startPosition.zoom);
-			this.map.setMapTypeId(ar[3]||config.startPosition.mapTypeId);
+			this.map().setCenter(new gmaps.LatLng(ar[0]||config.startPosition.lat,ar[1]||config.startPosition.lng));
+			this.map().setZoom(Math.floor(ar[2])||config.startPosition.zoom);
+			this.map().setMapTypeId(ar[3]||config.startPosition.mapTypeId);
 		}
 	}
 
 	App.prototype.saveMapPosition = function() {
 		var self = this;
-		if (this.map && this.cookiesEnabled()) {
+		if (this.map() && this.cookiesEnabled()) {
 			if (this.savePositionTimeout) clearTimeout(this.savePositionTimeout);
 			this.savePositionTimeout = setTimeout(function() {
-				$.cookie("mapPosition",self.map.getCenter().lat()+","+self.map.getCenter().lng()+","+self.map.getZoom()+","+self.map.getMapTypeId());
+				$.cookie("mapPosition",self.map().getCenter().lat()+","+self.map().getCenter().lng()+","+self.map().getZoom()+","+self.map().getMapTypeId());
 			},1000);
 		}
 	}
 
 	App.prototype.init = function() {
 		var self = this;
-		ko.applyBindings(self);
-		this.isLoaded(true);
-		this.map = new gmaps.Map($("#map")[0]);
-		this.map.setOptions({
+		ko.applyBindings(this);
+		var map = new gmaps.Map($("#map")[0]);
+		map.setOptions({
 			mapTypeControl: true,
 			mapTypeControlOptions: {
 				mapTypeIds: [gmaps.MapTypeId.ROADMAP,gmaps.MapTypeId.HYBRID,gmaps.MapTypeId.SATELLITE,gmaps.MapTypeId.TERRAIN],
@@ -80,16 +78,21 @@ define(["jquery","knockout","gmaps","config","projectManager","project","jquery.
 			overviewMapControl: true,
 			rotateControl: true
 		});
-		gmaps.event.addListenerOnce(this.map,"idle",function() {
+		gmaps.event.addListenerOnce(map,"idle",function() {
 			self.restoreMapPosition();
-			self.afterInit();
+			self.isReady(true);
+			self.infoWindow = new InfoWindow({
+				map: self.map
+			});
+			self.searchInput = $("#search")[0];
 		});
-		gmaps.event.addListener(this.map,"bounds_changed",function() {
+		gmaps.event.addListener(map,"bounds_changed",function() {
 			self.saveMapPosition();
 		});
-		gmaps.event.addListener(this.map,"maptypeid_changed",function() {
+		gmaps.event.addListener(map,"maptypeid_changed",function() {
 			self.saveMapPosition();
 		});
+		this.map(map);
 	}
 
 	return App;

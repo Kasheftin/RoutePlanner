@@ -16,10 +16,11 @@
     <![endif]-->
   </head>
   <body>
-    <div class="ro-loading"></div>
-    <div class="ro-container" data-bind="visible:isLoaded(),style:{opacity:isReady()?'1':'0'}" style="display:none;">
+    <div class="ro-loading-container" data-bind="fade:!isReady()">
+      <div class="ro-loading"></div>
+    </div>
+    <div id="container" class="ro-container">
       <div id="map" class="ro-map"></div>
-
 
       <!-- ko with: currentProject -->
 
@@ -35,14 +36,13 @@
             <a class="glyphicon glyphicon-cog" href="#" data-bind="click:editSettings" title="Open map settings"></a>
             <a class="glyphicon glyphicon-remove" href="#" data-bind="click:closeProject" title="Close map"></a>
           </div>
-          <div class="ro-layers" data-bind="sortable:{data:layers,options:{helper:'ro-layer-drag'}}">
+          <div class="ro-layers" id="ro-layers" data-bind="sortable:{data:layers,connectClass:'ro-layers'}">
             <div class="ro-layer" data-bind="css:{'ro-layer-active':$parent.isLayerSelected($data)},click:$parent.selectLayer.bind($parent,$data)">
               <div class="ro-layer-header">
-                <div class="ro-controls ro-controls-aleft">
-                  <a class="glyphicon icon-calcminus" href="#" data-bind="visible:isExpanded(),click:contract,clickBubble:false" title="Contract layer"></a>
-                  <a class="glyphicon icon-calcplus" href="#" data-bind="visible:!isExpanded(),click:expand,clickBubble:false" title="Expand layer"></a>
-                </div>
-                <span data-bind="text:name()||'-- Empty name --'"></span>
+                <a class="ro-layer-title" href="#" data-bind="click:switchExpand,clickBubble:false">
+                  <i class="glyphicon" data-bind="css:{'icon-calcminus':isExpanded(),'icon-calcplus':!isExpanded()}"></i>
+                  <span data-bind="text:name()||'-- Empty name --'"></span>
+                </a>
                 <div class="ro-controls ro-controls-aright">
                   <a class="glyphicon glyphicon-cog" href="#" data-bind="visible:$parent.isLayerSelected($data),click:editSettings,clickBubble:false" title="Edit layer settings"></a>
                   <a class="glyphicon glyphicon-check" href="#" data-bind="visible:isVisible,click:hide,clickBubble:false" title="Hide layer"></a>
@@ -51,17 +51,33 @@
               </div>
               <!-- ko if: isExpanded -->
                 <div class="ro-layer-body">
-                  <!-- ko if: shapes().length == 0 -->
-                    <div class="ro-layer-body-empty">-- Empty --</div>
-                  <!-- /ko -->
-                  <!-- ko if: shapes().length > 0 -->
-                    <div class="ro-layer-body-empty">-- Not empty --</div>
-                  <!-- /ko -->
+                  <div class="ro-layer-body-empty" data-bind="visible:shapes().length==0">-- Empty --</div>
+                  <div class="ro-shapes" data-bind="sortable:{data:shapes,connectClass:'ro-shapes',afterMove:$parent.dragShapeCallback},attr:{'data-layer-index':$index}">
+                    <!-- ko if: type() == "marker" -->
+                      <a class="ro-shape-marker" href="#" data-bind="css:{'ro-shape-active':$parents[1].selectedShape()==$data},click:$parents[1].editShape.bind($parents[1],$data),clickBubble:false">
+                        <i class="glyphicon" data-bind="css:icon"></i>
+                        <span data-bind="text:name"></span>
+                      </a>
+                    <!-- /ko -->
+                  </div>
                 </div>
               <!-- /ko -->
             </div>
           </div>
         </div>
+
+        <!-- Search box -->
+        <div class="ro-search">
+          <input id="search" class="form-control" type="text" data-bind="value:q,valueUpdate:'afterkeydown'" placeholder="Enter a query">
+          <a class="ro-search-clear ro-controls glyphicon glyphicon-remove" href="#" data-bind="visible:q().length>0,click:clearSearch"></a>
+        </div>
+
+        <!-- Toolbar -->
+        <!-- ko with: toolbar -->
+          <div class="ro-toolbar ro-controls" data-bind="foreach:tools">
+            <a href="#" role="button" data-bind="css:{'ro-tool-selected':$data==$parent.currentTool(),'disabled':!isEnabled()},attr:{title:title},click:$parent.selectTool.bind($parent,$data)"><i class="glyphicon" data-bind="css:icon"></i></a>
+          </div>
+        <!-- /ko -->
 
         <!-- Edit layer settings -->
         <!-- ko with: selectedLayer -->
@@ -106,6 +122,8 @@
           </div>
         <!-- /ko -->
         <!-- /ko -->
+
+
 
         <!-- Edit project overlay -->
         <!-- ko with: settings2edit -->
@@ -216,9 +234,37 @@
           </div>
         </div>
       <!-- /ko -->
-
-
     </div>
+
+
+    <!-- Info window -->
+    <script type="text/template" id="infoWindowTemplate">
+      <div id="infoWindow" class="ro-iwnd">
+        <!-- ko if: type()=="editMarkerShape" -->
+          <h4>Edit marker</h4>
+          <div class="modal-body form-horizontal">
+            <div class="form-group">
+              <label for="inputMarkerName" class="control-label col-sm-2">Name</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="inputMarkerName" placeholder="Marker name" data-bind="value:editData.name,valueUpdate:'afterkeydown'">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputMarkerDescription" class="control-label col-sm-2">Description</label>
+              <div class="col-sm-10">
+                <textarea class="form-control" id="inputMarkerDescription" rows="5" placeholder="Marker description" data-bind="value:editData.description,valueUpdate:'afterkeydown'"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" data-bind="click:saveShape">Save</button>
+            <button class="btn btn-default" data-bind="click:close">Cancel</button>
+            <button class="btn btn-default" data-bind="click:deleteShape">Delete marker</button>
+          </div>
+        <!-- /ko -->
+      </div>
+    </script>
+
     <script type="text/javascript" src="lib/require-2.1.8.min.js" data-main="js/init"></script>
   </body>
 </html>
