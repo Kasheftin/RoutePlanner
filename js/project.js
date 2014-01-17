@@ -61,6 +61,35 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 	}
 
 
+	Project.prototype.addToMap = function(place) {
+		var self = this;
+		if (!this.selectedLayer()) return;
+		console.log("place",place);
+		var shape = new Shape($.extend({},config.newMarker,{
+			name: place.name,
+			description: place.description,
+			data: {
+				lat: place.marker.getPosition().lat(),
+				lng: place.marker.getPosition().lng()
+			},
+			isVisible: true,
+			map: self.map,
+			layer: self.selectedLayer()
+		}));
+		self.selectedLayer().addShape(shape);
+		self.selectedShape(shape);
+		shape.on("editShape",function() {
+			self.editShape(shape);
+		});
+		shape.on("deleteShape",function() {
+			shape.clear();
+			shape.layer && shape.layer.deleteShape(shape);
+		});
+		shape.redraw();
+		self.editShape(shape);
+	}
+
+
 	Project.prototype.editShape = function(shape) {
 		this.selectShape(shape);
 		this.emit("openInfoWindow",{
@@ -72,10 +101,6 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 
 	Project.prototype.selectShape = function(shape) {
 		this.selectedShape(shape);
-	}
-
-	Project.prototype.clearSearch = function() {
-		this.q("");
 	}
 
 	Project.prototype.addLayer = function() {

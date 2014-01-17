@@ -252,6 +252,14 @@
 	padding-top: 0;
 	margin-top: 0;
 }
+.ro-iwnd-search-result {
+	padding: 10px;
+	background-color: #f0f0f0;
+}
+.ro-iwnd-add-to-map {
+	padding: 5px;
+}
+
 
 .bordered {
 	border: 1px solid #000000;

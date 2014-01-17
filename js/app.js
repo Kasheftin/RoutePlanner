@@ -1,9 +1,10 @@
-define(["jquery","knockout","gmaps","config","projectManager","project","infoWindow","jquery.cookie","knockout.sortable","utils"],function($,ko,gmaps,config,ProjectManager,Project,InfoWindow) {
+define(["jquery","knockout","gmaps","config","projectManager","project","infoWindow","searchBox","jquery.cookie","knockout.sortable","utils"],function($,ko,gmaps,config,ProjectManager,Project,InfoWindow,SearchBox) {
 
 	var App = function() {
 		var self = this;
 		this.isReady = ko.observable(false);
 		this.map = ko.observable(null);
+		this.q = ko.observable("");
 
 		this.cookiesEnabled = ko.observable($.cookie("cookiesEnabled")!=null?$.cookie("cookiesEnabled"):config.cookiesEnabled);
 		this.cookiesEnabled.subscribe(function(b) {
@@ -30,6 +31,11 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 			self.currentProject(project);
 		});
 
+	}
+
+	App.prototype.clearSearch = function() {
+		this.q("");
+		this.searchBox && this.searchBox.clearSearchResults();
 	}
 
 	App.prototype.restoreMapPosition = function() {
@@ -84,7 +90,20 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 			self.infoWindow = new InfoWindow({
 				map: self.map
 			});
-			self.searchInput = $("#search")[0];
+			self.searchBox = new SearchBox({
+				input: $("#search")[0],
+				map: self.map
+			});
+			self.searchBox.on("openSearchResultInfoWindow",function(place,marker) {
+				self.infoWindow && self.infoWindow.openWithData({
+					type: "searchResult",
+					place: place,
+					openAt: marker,
+					addToMap: function(data) {
+						self.currentProject() && self.currentProject().addToMap(data);
+					}
+				});
+			});
 		});
 		gmaps.event.addListener(map,"bounds_changed",function() {
 			self.saveMapPosition();

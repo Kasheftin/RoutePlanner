@@ -66,12 +66,6 @@
           </div>
         </div>
 
-        <!-- Search box -->
-        <div class="ro-search">
-          <input id="search" class="form-control" type="text" data-bind="value:q,valueUpdate:'afterkeydown'" placeholder="Enter a query">
-          <a class="ro-search-clear ro-controls glyphicon glyphicon-remove" href="#" data-bind="visible:q().length>0,click:clearSearch"></a>
-        </div>
-
         <!-- Toolbar -->
         <!-- ko with: toolbar -->
           <div class="ro-toolbar ro-controls" data-bind="foreach:tools">
@@ -237,31 +231,45 @@
     </div>
 
 
-    <!-- Info window -->
-    <script type="text/template" id="infoWindowTemplate">
-      <div id="infoWindow" class="ro-iwnd">
-        <!-- ko if: type()=="editMarkerShape" -->
-          <h4>Edit marker</h4>
-          <div class="modal-body form-horizontal">
-            <div class="form-group">
-              <label for="inputMarkerName" class="control-label col-sm-2">Name</label>
-              <div class="col-sm-10">
-                <input type="text" class="form-control" id="inputMarkerName" placeholder="Marker name" data-bind="value:editData.name,valueUpdate:'afterkeydown'">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="inputMarkerDescription" class="control-label col-sm-2">Description</label>
-              <div class="col-sm-10">
-                <textarea class="form-control" id="inputMarkerDescription" rows="5" placeholder="Marker description" data-bind="value:editData.description,valueUpdate:'afterkeydown'"></textarea>
-              </div>
+    <!-- Search box -->
+    <div class="ro-search" data-bind="visible:currentProject">
+      <input id="search" class="form-control" type="text" data-bind="value:q,valueUpdate:'afterkeydown'" placeholder="Enter a query">
+      <a class="ro-search-clear ro-controls glyphicon glyphicon-remove" href="#" data-bind="visible:q().length>0,click:clearSearch"></a>
+    </div>
+
+
+    <!-- Edit marker shape info window -->
+    <script type="text/template" id="editMarkerShapeInfoWindowTemplate">
+      <div id="editMarkerShapeInfoWindow" class="ro-iwnd">
+        <h4>Edit marker</h4>
+        <div class="modal-body form-horizontal">
+          <div class="form-group">
+            <label for="inputMarkerName" class="control-label col-sm-2">Name</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="inputMarkerName" placeholder="Marker name" data-bind="value:name">
             </div>
           </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary" data-bind="click:saveShape">Save</button>
-            <button class="btn btn-default" data-bind="click:close">Cancel</button>
-            <button class="btn btn-default" data-bind="click:deleteShape">Delete marker</button>
+          <div class="form-group">
+            <label for="inputMarkerDescription" class="control-label col-sm-2">Description</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" id="inputMarkerDescription" rows="5" placeholder="Marker description" data-bind="value:description"></textarea>
+            </div>
           </div>
-        <!-- /ko -->
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" data-bind="click:saveShape">Save</button>
+          <button class="btn btn-default" data-bind="click:close">Cancel</button>
+          <button class="btn btn-default" data-bind="click:deleteShape">Delete marker</button>
+        </div>
+      </div>
+    </script>
+
+    <!-- Search result info window -->
+    <script type="text/template" id="searchResultInfoWindowTemplate">
+      <div id="searchResultInfoWindow" class="ro-iwnd">
+        <h4 data-bind="text:name">Title</h4>
+        <div class="ro-iwnd-search-result" data-bind="text:description">Address</div>
+        <div class="ro-iwnd-add-to-map"><a href="#" data-bind="click:addToMap">Add to map</a></div>
       </div>
     </script>
 
