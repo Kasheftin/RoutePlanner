@@ -45,18 +45,13 @@ define(["jquery","knockout","gmaps","eventEmitter","config"],function($,ko,gmaps
 			isEnabled: ko.computed(function() {
 				return !!self.layer();
 			}),
-			onSelect: function() {
-				console.log("addDirectionTool selected");
-			},
 			onClick: function() {
-				console.log("addDirectionTool clicked");
-			},
-			onDeselect: function() {
-				console.log("addDirectionTool deselected");
+				self.emit("addDirections");
 			}
 		}));
 
-		this.tools = [this.moveTool,this.addMarkerTool,this.addLineTool,this.addDirectionTool];
+//		this.tools = [this.moveTool,this.addMarkerTool,this.addLineTool,this.addDirectionTool];
+		this.tools = [this.moveTool,this.addMarkerTool,this.addDirectionTool];
 		this.currentTool = ko.observable(null);
 		this.layer.subscribe(function(layer) {
 			if (!layer) self.deselectTool();

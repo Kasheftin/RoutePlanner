@@ -1,4 +1,4 @@
-define(["jquery","knockout","gmaps","config","projectManager","project","infoWindow","searchBox","jquery.cookie","knockout.sortable","utils"],function($,ko,gmaps,config,ProjectManager,Project,InfoWindow,SearchBox) {
+define(["jquery","knockout","gmaps","config","projectManager","project","infoWindow","searchBox","notificationBar","jquery.cookie","knockout.sortable","utils"],function($,ko,gmaps,config,ProjectManager,Project,InfoWindow,SearchBox,NotificationBar) {
 
 	var App = function() {
 		var self = this;
@@ -6,10 +6,13 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 		this.map = ko.observable(null);
 		this.q = ko.observable("");
 
+		this.notificationBar = new NotificationBar();
+
 		this.cookiesEnabled = ko.observable($.cookie("cookiesEnabled")!=null?$.cookie("cookiesEnabled"):config.cookiesEnabled);
 		this.cookiesEnabled.subscribe(function(b) {
 			if (b) $.cookie("cookiesEnabled",true);
 			else $.removeCookie("cookiesEnabled");
+			self.notificationBar.send("Cookies have been " + (b?"enabled":"disabled"));
 		});
 
 		this.currentProject = ko.observable(null);
@@ -28,9 +31,21 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 			project.on("openInfoWindow",function(data) {
 				self.infoWindow && self.infoWindow.openWithData(data);
 			});
+			project.on("closeInfoWindow",function(data) {
+				self.infoWindow && self.infoWindow.close();
+			});
+			project.on("notify",function(notification) {
+				self.notificationBar.send(notification);
+			})
+			project.on("setMapPosition",function(position) {
+				self.setMapPosition(position);
+			});
+			project.initialize(data);
 			self.currentProject(project);
 		});
-
+		this.projectManager.on("notify",function(notification) {
+			self.notificationBar.send(notification);
+		});
 	}
 
 	App.prototype.clearSearch = function() {
@@ -38,12 +53,18 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 		this.searchBox && this.searchBox.clearSearchResults();
 	}
 
-	App.prototype.restoreMapPosition = function() {
+	App.prototype.setMapPosition = function(position) {
 		if (this.map()) {
-			var ar = ($.cookie("mapPosition")||"").split(/,/);
+			var ar = (position||"").split(/,/);
 			this.map().setCenter(new gmaps.LatLng(ar[0]||config.startPosition.lat,ar[1]||config.startPosition.lng));
 			this.map().setZoom(Math.floor(ar[2])||config.startPosition.zoom);
 			this.map().setMapTypeId(ar[3]||config.startPosition.mapTypeId);
+		}
+	}
+
+	App.prototype.restoreMapPosition = function() {
+		if (this.map()) {
+			this.setMapPosition($.cookie("mapPosition"));
 		}
 	}
 
@@ -54,6 +75,52 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 			this.savePositionTimeout = setTimeout(function() {
 				$.cookie("mapPosition",self.map().getCenter().lat()+","+self.map().getCenter().lng()+","+self.map().getZoom()+","+self.map().getMapTypeId());
 			},1000);
+		}
+	}
+
+	App.prototype.addDebugToPrototype = function(pr) {
+	    for (var i in pr) { 
+	        if (typeof pr[i] == "function") {
+	            (function(i) {
+	                var origMethod = pr[i];
+	                pr[i] = function(a,b,c,d,e,f,g,h) { 
+	                    console.log(i,arguments);
+	                    return origMethod.apply(this,arguments);
+	                }
+	            })(i);
+	        }
+	    }
+	}
+
+	App.prototype.addPOIHook = function() {
+		var self = this;
+		var set = gmaps.InfoWindow.prototype.set;
+		gmaps.InfoWindow.prototype.set = function(key,val) {
+			var infoWindow = this;
+			if (key == "map" && self.currentProject()) {
+				var content = $(this.content);
+				var contentHTML = content.html();
+				var link = $("<a href='#'>add to map</a>");
+				link.click(function() {
+					var descr = [];
+					descr.push(content.find("div.gm-addr").text());
+					descr.push(content.find("div.gm-website a").attr("href"));
+					descr.push(content.find("div.gm-phone").text());
+					var data = {
+						name: content.find("div.gm-title").text(),
+						description: $.grep(descr,function(v) { return v && v.length>0; }).join("\n")
+					} 
+					self.currentProject() && self.currentProject().addMarkerToMap({
+						name: data.name,
+						description: data.description,
+						lat: infoWindow.getPosition().lat(),
+						lng: infoWindow.getPosition().lng()
+					});
+					infoWindow.close();
+				});
+				content.find("div.gm-rev").append($("<div style='float:right'></div>").append(link));
+			}
+			set.apply(this,arguments);
 		}
 	}
 
@@ -94,14 +161,30 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 				input: $("#search")[0],
 				map: self.map
 			});
+			self.addPOIHook();
+			self.service = new gmaps.places.PlacesService(self.map());
 			self.searchBox.on("openSearchResultInfoWindow",function(place,marker) {
-				self.infoWindow && self.infoWindow.openWithData({
-					type: "searchResult",
-					place: place,
-					openAt: marker,
-					addToMap: function(data) {
-						self.currentProject() && self.currentProject().addToMap(data);
-					}
+				self.service.getDetails({
+					reference: place.reference
+				},function(result,status) {
+					var descr = [];
+					descr.push(result.formatted_address);
+					descr.push(result.website);
+					descr.push(result.formatted_phone_number);
+					place.description = $.grep(descr,function(v) { return  v && v.length>0; }).join("\n");
+					self.infoWindow && self.infoWindow.openWithData({
+						type: "searchResult",
+						place: place,
+						openAt: marker,
+						addToMap: function(data) {
+							self.currentProject() && self.currentProject().addMarkerToMap({
+								name: data.name,
+								description: data.description,
+								lat: data.marker.getPosition().lat(),
+								lng: data.marker.getPosition().lng()
+							});
+						}
+					});
 				});
 			});
 		});

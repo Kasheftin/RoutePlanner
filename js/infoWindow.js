@@ -4,12 +4,16 @@ define(["jquery","knockout","gmaps","config"],function($,ko,gmaps,config) {
 		this.map = options.map;
 	}
 
-	InfoWindow.prototype.openWithData = function(data) {
-		var self = this;
-		if (this.iw) { 
+	InfoWindow.prototype.close = function() {
+		if (this.iw) {
 			this.iw.close();
 			delete this.iw;
 		}
+	}
+
+	InfoWindow.prototype.openWithData = function(data) {
+		var self = this;
+		this.close();
 		if (data.type == "editShape" && data.shape) {
 			self.iw = new gmaps.InfoWindow({content:$("#editMarkerShapeInfoWindowTemplate").html()});
 			self.currentModel = {
@@ -35,25 +39,51 @@ define(["jquery","knockout","gmaps","config"],function($,ko,gmaps,config) {
 			data.openAt && self.map() && self.iw.open(self.map(),data.openAt);
 		}
 		if (data.type == "searchResult" && data.place) {
-			self.iw = new gmaps.InfoWindow({content:$("#searchResultInfoWindowTemplate").html()});
-			self.currentModel = {
-				name: ko.observable(data.place.name),
-				description: ko.observable(data.place.formatted_address),
-				addToMap: function() {
-					self.currentModel.close();
-					data.addToMap && data.addToMap({
-						name: self.currentModel.name(),
-						description: self.currentModel.description(),
-						marker: data.openAt
-					});
-				},
-				close: function() {
-					self.iw.close();
-					delete self.iw;
-				}
-			}
+			var html = (data.place.description||"").replace(/^[\r\n\t]+/,"").replace(/[\r\n\t]+$/,"").replace(/\n/g,"\n<br>\n").replace(/\bhttps?:\/\/[^\s]+/gi,function(v) {
+				return "<a target='_blank' href='" + v + "'>" + v.replace(/\bhttps?:\/\//,"") + "</a>";
+			});
+			if (html.length == 0) html = "-- Empty description --";
+			var tmpHTML = $("<div></div>").html($("#searchResultInfoWindowTemplate").html())
+				.find("#searchResultInfoWindow-content").append(html).end()
+				.find("#searchResultInfoWindow-name").append(data.place.name).end()
+				.html();
+			self.iw = new gmaps.InfoWindow({content:tmpHTML});
 			gmaps.event.addListenerOnce(self.iw,"domready",function() {
-				ko.applyBindings(self.currentModel,$("#searchResultInfoWindow")[0]);
+				$("#searchResultInfoWindow")
+					.find("#searchResultInfoWindow-add").on("click",function() {
+						self.iw.close();
+						delete self.iw;
+						data.addToMap && data.addToMap({
+							name: data.place.name,
+							description: data.place.description,
+							marker: data.openAt
+						});
+					}).end();
+			});
+			data.openAt && self.map() && self.iw.open(self.map(),data.openAt);
+		}
+		if (data.type == "showShape" && data.shape) {
+			var html = (data.shape.description()||"").replace(/^[\r\n\t]+/,"").replace(/[\r\n\t]+$/,"").replace(/\n/g,"\n<br>\n").replace(/\bhttps?:\/\/[^\s]+/gi,function(v) {
+				return "<a target='_blank' href='" + v + "'>" + v.replace(/\bhttps?:\/\//,"") + "</a>";
+			});
+			if (html.length == 0) html = "-- Empty description --";
+			var tmpHTML = $("<div></div>").html($("#showMarkerShapeInfoWindowTemplate").html())
+				.find("#showMarkerShapeInfoWindow-content").append(html).end()
+				.find("#showMarkerShapeInfoWindow-name").append(data.shape.name()).end()
+				.html();
+			self.iw = new gmaps.InfoWindow({content:tmpHTML});
+			gmaps.event.addListenerOnce(self.iw,"domready",function() {
+				$("#showMarkerShapeInfoWindow")
+					.find("#showMarkerShapeInfoWindow-edit").on("click",function() {
+						self.iw.close();
+						delete self.iw;
+						data.shape.emit("editShape");
+					}).end()
+					.find("#showMarkerShapeInfoWindow-delete").on("click",function() {
+						self.iw.close();
+						delete self.iw;
+						data.shape.emit("deleteShape");
+					}).end();
 			});
 			data.openAt && self.map() && self.iw.open(self.map(),data.openAt);
 		}

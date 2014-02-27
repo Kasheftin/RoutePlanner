@@ -40,6 +40,7 @@ define(["jquery","knockout","eventEmitter","config"],function($,ko,EventEmitter,
 		var data = config.newProject;
 		this.projects.push(data);
 		this.emit("setProject",data,this.projects().length-1);
+		this.emit("notify","New project has been created");
 	}
 
 	ProjectManager.prototype.loadProject = function() {
@@ -52,6 +53,8 @@ define(["jquery","knockout","eventEmitter","config"],function($,ko,EventEmitter,
 		}
 		this.projects.push(data);
 		this.emit("setProject",data,this.projects().length-1);
+		this.emit("notify","Project has been loaded");
+		this.page(null);
 	}
 
 	ProjectManager.prototype.setVar = function(i,v) {

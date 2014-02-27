@@ -28,7 +28,7 @@
         <div class="ro-project">
           <div class="ro-project-inner" data-bind="click:deselectLayer">
             <h4 data-bind="text:name()||'-- No name --'"></h4>
-            <p data-bind="text:description"></p>
+            <p data-bind="html:descriptionHTML"></p>
             <div class="ro-project-add-layer"><a href="#" data-bind="click:addLayer,clickBubble:false" title="Add layer">Add layer</a></div>
           </div>
           <div class="ro-controls ro-project-settings-controls">
@@ -37,10 +37,11 @@
             <a class="glyphicon glyphicon-remove" href="#" data-bind="click:closeProject" title="Close map"></a>
           </div>
           <div class="ro-layers" id="ro-layers" data-bind="sortable:{data:layers,connectClass:'ro-layers'}">
-            <div class="ro-layer" data-bind="css:{'ro-layer-active':$parent.isLayerSelected($data)},click:$parent.selectLayer.bind($parent,$data)">
+            <div class="ro-layer" data-bind="css:{'ro-layer-active':$parent.isLayerSelected($data),'ro-layer-disable-select':!isVisible()},click:$parent.selectLayer.bind($parent,$data)">
               <div class="ro-layer-header">
                 <a class="ro-layer-title" href="#" data-bind="click:switchExpand,clickBubble:false">
-                  <i class="glyphicon" data-bind="css:{'icon-calcminus':isExpanded(),'icon-calcplus':!isExpanded()}"></i>
+                  <i class="glyphicon" data-bind="css:{'icon-calcminus':isExpanded(),'icon-calcplus':!isExpanded()},visible:isVisible"></i>
+                  <i class="glyphicon" data-bind="visible:!isVisible()">&nbsp;</i>
                   <span data-bind="text:name()||'-- Empty name --'"></span>
                 </a>
                 <div class="ro-controls ro-controls-aright">
@@ -54,10 +55,69 @@
                   <div class="ro-layer-body-empty" data-bind="visible:shapes().length==0">-- Empty --</div>
                   <div class="ro-shapes" data-bind="sortable:{data:shapes,connectClass:'ro-shapes',afterMove:$parent.dragShapeCallback},attr:{'data-layer-index':$index}">
                     <!-- ko if: type() == "marker" -->
-                      <a class="ro-shape-marker" href="#" data-bind="css:{'ro-shape-active':$parents[1].selectedShape()==$data},click:$parents[1].editShape.bind($parents[1],$data),clickBubble:false">
+                      <a class="ro-shape-title" href="#" data-bind="css:{'ro-shape-active':$parents[1].selectedShape()==$data},click:$parents[1].showShape.bind($parents[1],$data)">
                         <i class="glyphicon" data-bind="css:icon"></i>
                         <span data-bind="text:name"></span>
                       </a>
+                    <!-- /ko -->
+                    <!-- ko if: type() == "directions" -->
+                      <div class="ro-shape-directions">
+                        <!-- ko if: $parents[1].selectedShape()==$data && editing() -->
+                          <div class="ro-shape-title ro-shape-active">
+                            <div class="ro-controls ro-controls-aright">
+                              <a class="glyphicon glyphicon-remove" title="Delete directions" href="#" data-bind="click:deleteShape"></a>
+                            </div>
+                            <div class="ro-as-link">
+                              <i class="glyphicon icon-directions"></i>
+                              <span data-bind="text:name()||'Untitled directions'"></span>
+                            </div>
+                            <div class="ro-destinations-list" data-bind="sortable:{data:destinations,connectClass:'ro-destinations-list'}">
+                              <div class="input-group input-group-sm form-group">
+                                <span class="input-group-addon ro-destination-label" data-bind="text:$index()+1"></span>
+                                <input type="text" class="form-control" data-bind="value:name,event:{focus:createAutocomplete,blur:destroyAutocomplete}" placeholder=" --Empty destination--">
+                                <a class="btn btn-default glyphicon glyphicon-remove input-group-addon" href="#" data-bind="visible:$parent.destinations().length>2,click:$parent.removeDestination.bind($parent,$data)"></a>                              
+                              </div>
+                            </div>
+                            <div class="ro-links-right">
+                              <a href="#" data-bind="click:addDestination.bind($data,'')">Add destination</a>
+                              <a href="#" data-bind="click:done.bind($data,'')">Apply</a>
+                            </div>
+                          </div>
+                        <!-- /ko -->
+                        <!-- ko if: $parents[1].selectedShape()==$data && !editing() -->
+                          <div class="ro-shape-title ro-shape-active">
+                            <div class="ro-controls ro-controls-aright">
+                              <a class="glyphicon glyphicon-cog" title="Edit directions" href="#" data-bind="click:editDirections"></a>
+                            </div>
+                            <div class="ro-as-link">
+                              <i class="glyphicon icon-directions"></i>
+                              <span data-bind="text:name()||'Untitled directions'"></span>
+                            </div>
+                            <div class="ro-destinations-params" data-bind="text:paramsPrint"></div>
+                            <div class="ro-destinations-list" data-bind="foreach:destinations">
+                              <div>
+                                <span class="badge" data-bind="text:$index()+1"></span>
+                                <span data-bind="text:name()||' --No destination--'"></span>
+                              </div>
+                            </div>
+                          </div>
+                        <!-- /ko -->
+                        <!-- ko if: $parents[1].selectedShape()!=$data -->
+                          <a class="ro-shape-title" href="#" data-bind="click:$parents[1].editShape.bind($parents[1],$data)">
+                            <i class="glyphicon icon-directions"></i>
+                            <span data-bind="text:name()||'Untitled directions'"></span>
+                            <div class="ro-destinations-params" data-bind="text:paramsPrint"></div>
+                            <!--
+                            <div class="ro-directions-list ro-directions-unselected" data-bind="sortable:{data:destinations,connectClass:'ro-destinations-list'}">
+                              <div>
+                                <span class="badge" data-bind="text:$index()+1"></span>
+                                <span data-bind="text:name()||' --Empty destination--'"></span>
+                              </div>
+                            </div>
+                            -->
+                          </a>
+                        <!-- /ko -->
+                      </div>
                     <!-- /ko -->
                   </div>
                 </div>
@@ -116,8 +176,6 @@
           </div>
         <!-- /ko -->
         <!-- /ko -->
-
-
 
         <!-- Edit project overlay -->
         <!-- ko with: settings2edit -->
@@ -186,7 +244,7 @@
           <div class="ro-dialog ro-welcome-dialog">
             <div class="ro-dialog-inner">
               <h1>Route planner v0.1</h1>
-              <p class="lead">Simple free tool for planning routes with unlimited layers.</p>
+              <p class="lead">Simple free tool for planning routes.</p>
               <p class="ro-off">It was written for a couple of weekends, and it uses <a href="http://requirejs.org/">require</a>, <a href="https://developers.google.com/maps/">google maps</a>, <a href="http://jquery.com/">jquery<a >, <a href="http://jqueryui.com/">jquery-ui</a>, <a href="http://knockoutjs.com/">knockout</a>, <a href="https://github.com/rniemeyer/knockout-sortable">knockout-sortable</a>, <a href="http://getbootstrap.com">bootstrap</a>. Front-end only, no own server required.</p>
               <!-- ko with: projectManager -->
                 <!-- ko if: message -->
@@ -230,13 +288,17 @@
       <!-- /ko -->
     </div>
 
-
     <!-- Search box -->
     <div class="ro-search" data-bind="visible:currentProject">
       <input id="search" class="form-control" type="text" data-bind="value:q,valueUpdate:'afterkeydown'" placeholder="Enter a query">
       <a class="ro-search-clear ro-controls glyphicon glyphicon-remove" href="#" data-bind="visible:q().length>0,click:clearSearch"></a>
     </div>
 
+    <!-- Notification bar -->
+    <div class="ro-notification-bar alert" data-bind="fade:notificationBar.isVisible,css:notificationBar._style">
+      <button type="button" class="close" data-bind="click:notificationBar.close.bind(notificationBar)">&times;</button>
+      <p data-bind="text:notificationBar._text"></p>
+    </div>
 
     <!-- Edit marker shape info window -->
     <script type="text/template" id="editMarkerShapeInfoWindowTemplate">
@@ -264,12 +326,27 @@
       </div>
     </script>
 
+    <!-- Show marker shape info window -->
+    <script type="text/template" id="showMarkerShapeInfoWindowTemplate">
+      <div id="showMarkerShapeInfoWindow" class="ro-iwnd">
+        <h4 id="showMarkerShapeInfoWindow-name"></h4>
+        <div class="ro-iwnd-search-result" id="showMarkerShapeInfoWindow-content"></div>
+        <div class="ro-iwnd-add-to-map">
+          <a href="#" id="showMarkerShapeInfoWindow-edit">Edit</a>
+          &nbsp;|&nbsp;
+          <a href="#" id="showMarkerShapeInfoWindow-delete">Delete</a>
+        </div>
+      </div>
+    </script>
+
     <!-- Search result info window -->
     <script type="text/template" id="searchResultInfoWindowTemplate">
       <div id="searchResultInfoWindow" class="ro-iwnd">
-        <h4 data-bind="text:name">Title</h4>
-        <div class="ro-iwnd-search-result" data-bind="text:description">Address</div>
-        <div class="ro-iwnd-add-to-map"><a href="#" data-bind="click:addToMap">Add to map</a></div>
+        <h4 id="searchResultInfoWindow-name"></h4>
+        <div class="ro-iwnd-search-result" id="searchResultInfoWindow-content"></div>
+        <div class="ro-iwnd-add-to-map">
+          <a href="#"id="searchResultInfoWindow-add">Add to map</a>
+        </div>
       </div>
     </script>
 

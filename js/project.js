@@ -4,91 +4,155 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 		this.name = ko.observable(data.name);
 		this.description = ko.observable(data.description);
 		this.map = data.map;
-
 		this.layers = ko.observableArray([]);
-		data.layers.forEach(function(layer) {
-			self.layers.push(self.createLayer(layer));
-		});
-
 		this.selectedLayer = ko.observable(null);
-		if (data.selectedLayerId>=0 && this.layers()[data.selectedLayerId]) {
-			this.selectedLayer(this.layers()[data.selectedLayerId]);
-		}
-
 		this.settings2edit = ko.observable(null);
 		this.exportData = ko.observable(null);
-
 		this.q = ko.observable("");
-
 		this.selectedShape = ko.observable(null);
-
 		this.toolbar = new Toolbar({
 			layer: this.selectedLayer,
 			map: this.map
 		});
-		this.toolbar.on("addMarker",function(e) {
-			if (!self.selectedLayer()) return;
-			var shape = new Shape($.extend({},config.newMarker,{
-				data: {
-					lat: e.latLng.lat(),
-					lng: e.latLng.lng()
-				},
-				isVisible: true,
-				map: self.map,
-				layer: self.selectedLayer()
-			}));
-			self.selectedLayer().addShape(shape);
-			self.selectedShape(shape);
-			shape.on("editShape",function() {
-				self.editShape(shape);
-			});
-			shape.on("deleteShape",function() {
-				shape.clear();
-				shape.layer && shape.layer.deleteShape(shape);
-			});
-			shape.redraw();
-			self.editShape(shape);
-		});
 
+		data.layers.forEach(function(layer) {
+			var l = self.createLayer(layer);
+			self.layers.push(l);
+			layer.shapes.forEach(function(shape) {
+				if (shape.type == "marker") {
+					self.addMarkerToMap({
+						lat: shape.data.lat,
+						lng: shape.data.lng,
+						name: shape.name,
+						description: shape.description,
+						layer: l,
+						toBottom: true
+					});
+				}
+				if (shape.type == "directions") {
+					var s = self.addDirectionsToMap({
+						name: shape.name,
+						layer: l,
+						destinations: shape.destinations,
+						preserveViewport: true,
+						toBottom: true
+					});
+					s.done();
+				}
+			});
+		});
+		this.selectedShape(null);
+
+		if (data.selectedLayerId>=0 && this.layers()[data.selectedLayerId]) {
+			this.selectedLayer(this.layers()[data.selectedLayerId]);
+		}
+
+		this.selectedShape.subscribe(function(shape) {
+			shape && shape.emit("deselectShape");
+			self.emit("closeInfoWindow");
+		},this,"beforeChange");
+
+		this.toolbar.on("addMarker",function(e) {
+			self.addMarkerToMap({
+				lat: e.latLng.lat(),
+				lng: e.latLng.lng(),
+				openEditShape: true
+			});
+		});
+		this.toolbar.on("addDirections",function() {
+			self.addDirectionsToMap();
+		});
 
 		this.dragShapeCallback = function(data) {
 			var draggedShape = data.item;
 			var layerIndex = $(this).data("layer-index");
-			if (draggedShape && layerIndex>=0)
+			if (draggedShape && layerIndex>=0) {
 				draggedShape.layer = self.layers()[layerIndex];
+				self.selectedLayer(draggedShape.layer);
+			}
 			console.log(draggedShape.layer,layerIndex);
+		}
+
+		this.descriptionHTML = ko.computed(function() {
+			var str = self.description();
+			var html = (str||"").replace(/^[\r\n\t]+/,"").replace(/[\r\n\t]+$/,"").replace(/\n/g,"\n<br>\n").replace(/\bhttps?:\/\/[^\s]+/gi,function(v) {
+				return "<a target='_blank' href='" + v + "'>" + v.replace(/\bhttps?:\/\//,"") + "</a>";
+			});
+			return html;
+		});
+	}
+
+	Project.prototype.initialize = function(data) {
+		if (data.mapPosition) {
+			this.emit("setMapPosition",data.mapPosition);
 		}
 	}
 
-
-	Project.prototype.addToMap = function(place) {
+	Project.prototype.addDirectionsToMap = function(options) {
 		var self = this;
-		if (!this.selectedLayer()) return;
-		console.log("place",place);
-		var shape = new Shape($.extend({},config.newMarker,{
-			name: place.name,
-			description: place.description,
-			data: {
-				lat: place.marker.getPosition().lat(),
-				lng: place.marker.getPosition().lng()
-			},
-			isVisible: true,
+		if (!options) options = {};
+		var layer = options.layer || this.selectedLayer();
+		if (!options.destinations) options.destinations = ["",""];
+		if (!layer) return;
+		var shape = new Shape($.extend({},config.newDirections,{
 			map: self.map,
-			layer: self.selectedLayer()
+			layer: layer,
+			destinations: options.destinations,
+			preserveViewport: options.preserveViewport,
+			isVisible: layer.isVisible()
 		}));
-		self.selectedLayer().addShape(shape);
+		shape.on("deselectShape",function() {
+			shape.editing(false);
+		});
+		shape.on("deleteShape",function() {
+			shape.clear();
+			shape.layer && shape.layer.deleteShape(shape);
+		});
+		layer.addShape(shape,options.toBottom);
 		self.selectedShape(shape);
+		return shape;
+	}
+
+	Project.prototype.addMarkerToMap = function(options) {
+		var self = this;
+		if (!options) options = {};
+		var layer = options.layer || this.selectedLayer();
+		if (!layer) return;
+		var shape = new Shape($.extend({},config.newMarker,{
+			name: options.name,
+			description: options.description,
+			data: {
+				lat: options.lat,
+				lng: options.lng
+			},
+			isVisible: layer.isVisible(),
+			map: this.map,
+			layer: layer
+		}));
+		layer.addShape(shape,options.toBottom);
+		this.selectedShape(shape);
 		shape.on("editShape",function() {
 			self.editShape(shape);
+		});
+		shape.on("showShape",function() {
+			self.showShape(shape);
+			if (shape.layer) { 
+				self.selectedLayer(shape.layer);
+			}
 		});
 		shape.on("deleteShape",function() {
 			shape.clear();
 			shape.layer && shape.layer.deleteShape(shape);
 		});
 		shape.redraw();
-		self.editShape(shape);
+		if (options.openEditShape) {
+			self.editShape(shape);
+		}
+		if (options.openShowShape) {
+			self.showShape(shape);
+		}
+		return shape;
 	}
-
 
 	Project.prototype.editShape = function(shape) {
 		this.selectShape(shape);
@@ -99,8 +163,22 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 		});
 	}
 
+	Project.prototype.showShape = function(shape) {
+		this.selectShape(shape);
+		this.emit("openInfoWindow",{
+			openAt: shape.model,
+			type: "showShape",
+			shape: shape
+		});
+	}
+
 	Project.prototype.selectShape = function(shape) {
 		this.selectedShape(shape);
+	}
+
+	Project.prototype.checkSelectedShapeToBeInSelectedLayer = function() {
+		if (this.selectedShape() && this.selectedShape().layer != this.selectedLayer())
+			this.selectedShape(null);
 	}
 
 	Project.prototype.addLayer = function() {
@@ -120,15 +198,23 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 				self.layers.splice(self.layers().indexOf(l),1);
 			}
 		});
+		l.on("deselectLayer",function() {
+			self.selectedLayer(null);
+		});
+		l.on("selectLayer",function() {
+			self.selectedLayer(l);
+		});
 		return l;
 	}
 
 	Project.prototype.selectLayer = function(data) {
-		this.selectedLayer(data);
+		this.selectedLayer(data.isVisible()?data:null);
+		this.checkSelectedShapeToBeInSelectedLayer();
 	}
 
 	Project.prototype.deselectLayer = function() {
 		this.selectedLayer(null);
+		this.checkSelectedShapeToBeInSelectedLayer();
 	}
 
 	Project.prototype.isLayerSelected = function(data) {
@@ -169,6 +255,7 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 		if (this.selectedLayer()) {
 			exportData.selectedLayerId = this.layers().indexOf(this.selectedLayer());
 		}
+		exportData.mapPosition = this.map().getCenter().lat()+","+this.map().getCenter().lng()+","+this.map().getZoom()+","+this.map().getMapTypeId();
 		this.exportData(ko.toJSON(exportData));
 	}
 

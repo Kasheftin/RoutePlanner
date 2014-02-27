@@ -1,14 +1,29 @@
 define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
 	var Layer = function(options) {
+		var self = this;
 		this.name = ko.observable(options.name);
 		this.isVisible = ko.observable(options.isVisible);
 		this.isExpanded = ko.observable(options.isExpanded);
-		this.shapes = ko.observableArray(options.shapes);
+		this.shapes = ko.observableArray([]);
 		this.settings2edit = ko.observable(null);
+		this.isVisible.subscribe(function(b) {
+			self.shapes().forEach(function(shape) {
+				shape.isVisible(b);
+				b ? shape.show() : shape.hide();
+			});
+			if (b) {
+				self.isExpanded(true);
+				self.emit("selectLayer");
+			}
+			else {
+				self.isExpanded(false);
+				self.emit("deselectLayer");
+			}
+		});
 	}
 
-	Layer.prototype.addShape = function(shape) {
-		this.shapes.unshift(shape);
+	Layer.prototype.addShape = function(shape,toBottom) {
+		toBottom ? this.shapes.push(shape) : this.shapes.unshift(shape);
 	}
 
 	Layer.prototype.deleteShape = function(shape) {
@@ -34,6 +49,9 @@ define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
 	}
 
 	Layer.prototype.destroyLayer = function() {
+		while (this.shapes().length > 0) {
+			this.shapes()[0].emit("deleteShape");
+		}
 		this.emit("destroyLayer");
 	}
 
@@ -46,7 +64,12 @@ define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
 	}
 
 	Layer.prototype.switchExpand = function() {
-		this.isExpanded(!this.isExpanded());
+		if (this.isVisible()) {
+			this.isExpanded(!this.isExpanded());
+		}
+		else {
+			this.isExpanded(false);
+		}
 	}
 
 	Layer.prototype.show = function() {
@@ -64,7 +87,9 @@ define(["jquery","knockout","eventEmitter"],function($,ko,EventEmitter) {
 			isExpanded: this.isExpanded(),
 			shapes: []
 		}
-		// TODO: export shapes
+		this.shapes().forEach(function(shape) {
+			exportData.shapes.push(shape.exportShape());
+		});
 		return exportData;
 	}
 

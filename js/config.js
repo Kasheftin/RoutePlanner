@@ -52,7 +52,14 @@ define({
 	newMarker: {
 		type: "marker",
 		name: "Untitled point",
-		icon: "icon-map-marker"
+		icon: "icon-map-marker",
+		isVisible: true
+	},
+	newDirections: {
+		type: "directions",
+		destinations: ["",""],
+		editing: true,
+		isVisible: true
 	},
 	defaultSearchZoom: 17,
 	cookiesEnabled: false
