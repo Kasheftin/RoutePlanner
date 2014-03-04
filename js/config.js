@@ -1,4 +1,7 @@
 define({
+	server: {
+		baseUrl: "/api.php"
+	},
 	startPosition: {
 		lat: 48.740,
 		lng: 19.140,

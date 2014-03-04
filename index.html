@@ -32,7 +32,7 @@
             <div class="ro-project-add-layer"><a href="#" data-bind="click:addLayer,clickBubble:false" title="Add layer">Add layer</a></div>
           </div>
           <div class="ro-controls ro-project-settings-controls">
-            <a class="glyphicon glyphicon-floppy-disk" href="#" data-bind="click:exportProject" title="Save map"></a>
+            <a class="glyphicon glyphicon-floppy-disk" href="#" data-bind="click:saveProject" title="Save map"></a>
             <a class="glyphicon glyphicon-cog" href="#" data-bind="click:editSettings" title="Open map settings"></a>
             <a class="glyphicon glyphicon-remove" href="#" data-bind="click:closeProject" title="Close map"></a>
           </div>
@@ -199,6 +199,11 @@
                       <textarea class="form-control" id="inputProjectDescription" data-bind="value:description"></textarea>
                     </div>
                   </div>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button class="btn btn-danger" data-bind="click:$parent.exportProject.bind($parent)">Export map to JSON</button>
+                    </div>
+                  </div> 
                 </div>
               </div>
               <div class="ro-dialog-to-bottom">
@@ -245,7 +250,7 @@
             <div class="ro-dialog-inner">
               <h1>Route planner v0.1</h1>
               <p class="lead">Simple free tool for planning routes.</p>
-              <p class="ro-off">It was written for a couple of weekends, and it uses <a href="http://requirejs.org/">require</a>, <a href="https://developers.google.com/maps/">google maps</a>, <a href="http://jquery.com/">jquery<a >, <a href="http://jqueryui.com/">jquery-ui</a>, <a href="http://knockoutjs.com/">knockout</a>, <a href="https://github.com/rniemeyer/knockout-sortable">knockout-sortable</a>, <a href="http://getbootstrap.com">bootstrap</a>. Front-end only, no own server required.</p>
+              <p class="ro-off">It was written for a couple of weekends, and it uses <a href="http://requirejs.org/">require</a>, <a href="https://developers.google.com/maps/">google maps</a>, <a href="http://jquery.com/">jquery<a >, <a href="http://jqueryui.com/">jquery-ui</a>, <a href="http://knockoutjs.com/">knockout</a>, <a href="https://github.com/rniemeyer/knockout-sortable">knockout-sortable</a>, <a href="http://getbootstrap.com">bootstrap</a>. <strike>Front-end only, no own server required.</strike> It's not so convinient to copy/paste large json string every time, so I added a simple server side map storage.</p>
               <!-- ko with: projectManager -->
                 <!-- ko if: message -->
                   <div class="alert alert-info ro-welcome-offset">
@@ -261,24 +266,52 @@
                   <!-- ko ifnot: page -->
                     <div class="btn-group ro-welcome-offset btn-group-lg btn-group-justified">
                       <a class="btn btn-default" role="button" data-bind="click:createProject">Create new map</a>
-                      <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page','projectsList'),css:{disabled:!cookiesEnabled()}">Open from cache</a>
-                      <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page','loadProject')">Load a map</a>
+                      <a class="btn btn-default" role="button" data-bind="click:getProjectsList">Load map</a>
+                      <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page','importProject')">Import map JSON</a>
                     </div>
                     <div class="ro-dialog-to-bottom">
-                      <p>For saving map in browser cache You have to enable storing data on Your computer.</p>
-                      <p class="checkbox"><label><input type="checkbox" data-bind="checked:cookiesEnabled"> Enable cookies and local storage</label></p>
+                      <p class="checkbox"><label><input type="checkbox" data-bind="checked:cookiesEnabled"> Enable cookies for storing editor's settings</label></p>
                     </div>
                   <!-- /ko -->
-                  <!-- ko if: page() == "loadProject" -->
+                  <!-- ko if: page() == "importProject" -->
                     <div class="ro-welcome-offset">
                       <div class="form-group">
-                        <textarea class="form-control" rows="6" placeholder="Paste here the project's data" data-bind="value:loadProjectData"></textarea>
+                        <textarea class="form-control" rows="6" placeholder="Paste here the project's JSON data" data-bind="value:loadProjectData"></textarea>
                       </div>
                       <div class="form-group pull-right">
                         <a class="btn btn-primary" role="button" data-bind="click:loadProject">Load</a>
                         <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page',null)">Cancel</a>
                       </div>
                     </div>
+                  <!-- /ko -->
+                  <!-- ko if: page() == "projectsList" -->
+                    <!-- ko if: projects().length > 0 -->
+                      <div class="ro-welcome-offset ro-projects-list">
+                        <table class="table table-bordered">
+                          <tbody data-bind="foreach:projects">
+                            <tr>
+                              <td data-bind="text:name"></td>
+                              <td data-bind="text:id"></td>
+                              <td><a href="#" data-bind="click:$parent.getProject.bind($parent,id)">Load map</a></td>
+                              <td><a href="#" data-bind="click:$parent.deleteProject.bind($parent,id)">Delete</a></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="form-group pull-right">
+                        <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page',null)">Cancel</a>
+                      </div>
+                    <!-- /ko -->
+                    <!-- ko if: projects().length == 0 -->
+                      <div class="alert alert-info ro-welcome-offset">
+                        <p>Projects not found</p>
+                        <div class="clearfix">
+                          <div class="btn-group pull-right">
+                            <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page',null)">Close</a>
+                          </div>
+                        </div>
+                      </div>
+                    <!-- /ko -->
                   <!-- /ko -->
                 <!-- /ko -->
               <!-- /ko -->

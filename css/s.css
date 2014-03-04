@@ -54,7 +54,7 @@
 	border-radius: 2px;
 	box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 	width: 600px;
-	height: 400px;
+	height: 450px;
 }
 .ro-dialog-inner {
 	margin: 0 10px;
@@ -113,6 +113,10 @@
 .ro-project-add-layer {
 	margin-bottom: 10px;
 }
+.ro-projects-list {
+	overflow-y: auto;
+}
+
 
 .ro-layer {
 	background-color: #ffffff;

@@ -1,6 +1,7 @@
 define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],function($,ko,EventEmitter,config,Layer,Toolbar,Shape) {
 	var Project = function(data) {
 		var self = this;
+		this.id = ko.observable(data.id);
 		this.name = ko.observable(data.name);
 		this.description = ko.observable(data.description);
 		this.map = data.map;
@@ -243,8 +244,9 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 		this.emit("close");
 	}
 
-	Project.prototype.exportProject = function() {
+	Project.prototype.toJSON = function() {
 		var exportData = {
+			id: this.id(),
 			name: this.name(),
 			description: this.description(),
 			layers: []
@@ -256,7 +258,15 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 			exportData.selectedLayerId = this.layers().indexOf(this.selectedLayer());
 		}
 		exportData.mapPosition = this.map().getCenter().lat()+","+this.map().getCenter().lng()+","+this.map().getZoom()+","+this.map().getMapTypeId();
-		this.exportData(ko.toJSON(exportData));
+		return ko.toJSON(exportData);		
+	}
+
+	Project.prototype.exportProject = function() {
+		this.exportData(this.toJSON());
+	}
+
+	Project.prototype.saveProject = function() {
+		this.emit("save");
 	}
 
 	$.extend(Project.prototype,EventEmitter.prototype);

@@ -19,12 +19,9 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 		this.projectManager = new ProjectManager({
 			cookiesEnabled: this.cookiesEnabled
 		});
-		this.projectManager.on("setProject",function(data,index) {
+		this.projectManager.on("setProject",function(data) {
 			data.map = self.map;
 			var project = new Project(data);
-			project.on("change",function() {
-				self.projectManager.saveProject(project,index);
-			});
 			project.on("close",function() {
 				self.currentProject(null);
 			});
@@ -40,6 +37,9 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 			project.on("setMapPosition",function(position) {
 				self.setMapPosition(position);
 			});
+			project.on("save",function() {
+				self.projectManager.saveProject(project);
+			})
 			project.initialize(data);
 			self.currentProject(project);
 		});

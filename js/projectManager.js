@@ -10,6 +10,8 @@ define(["jquery","knockout","eventEmitter","config"],function($,ko,EventEmitter,
 		this.loadProjectData = ko.observable("");
 
 		this.page.subscribe(function(page) {
+			self.message(null);
+/*			
 			if (page == "projectsList") {
 				if (localStorage) {
 					try {
@@ -33,17 +35,17 @@ define(["jquery","knockout","eventEmitter","config"],function($,ko,EventEmitter,
 			else {
 				self.message(null);
 			}
+*/
 		});
 	}
 
 	ProjectManager.prototype.createProject = function() {
 		var data = config.newProject;
-		this.projects.push(data);
-		this.emit("setProject",data,this.projects().length-1);
-		this.emit("notify","New project has been created");
+		this.emit("setProject",data);
+		this.emit("notify","New map has been created");
 	}
 
-	ProjectManager.prototype.loadProject = function() {
+	ProjectManager.prototype.loadProject = function(projectId) {
 		try {
 			var data = JSON.parse(this.loadProjectData());
 		}
@@ -51,10 +53,104 @@ define(["jquery","knockout","eventEmitter","config"],function($,ko,EventEmitter,
 			this.message(e);
 			return;
 		}
-		this.projects.push(data);
-		this.emit("setProject",data,this.projects().length-1);
-		this.emit("notify","Project has been loaded");
+		if (projectId) {
+			data.id = projectId;
+		}
+
+		this.emit("setProject",data);
+		this.emit("notify","Map has been loaded");
 		this.page(null);
+		this.loadProjectData(null);
+	}
+
+	ProjectManager.prototype.getProjectsList = function(silent) {
+		var self = this;
+		$.ajax({
+			url: config.server.baseUrl,
+			type: "post",
+			dataType: "json",
+			data: {
+				action: "getProjectsList"
+			},
+			success: function(result) {
+				if (result.error) self.emit("notify",{text:result.error,type:"alert"});
+				else if (result.success && !silent) self.emit("notify",result.success);
+				self.projects(result.data);
+				self.page("projectsList");
+			},
+			error: function(jqXHR,textStatus,errorThrown) {
+				self.emit("notify",{text:textStatus+errorThrown,type:"alert"});
+			}
+		});
+	}
+
+	ProjectManager.prototype.getProject = function(id) {
+		var self = this;
+		$.ajax({
+			url: config.server.baseUrl,
+			type: "post",
+			dataType: "json",
+			data: {
+				action: "getProject",
+				id: id
+			},
+			success: function(result) {
+				if (result.error) self.emit("notify",{text:result.error,type:"alert"});
+				else if (result.success) {
+					self.emit("notify",result.success);
+					self.loadProjectData(result.data);
+					self.loadProject(result.id);
+				}
+			},
+			error: function(jqXHR,textStatus,errorThrown) {
+				self.emit("notify",{text:textStatus+errorThrown,type:"alert"});
+			}
+		});
+	}
+
+	ProjectManager.prototype.deleteProject = function(id) {
+		var self = this;
+		$.ajax({
+			url: config.server.baseUrl,
+			type: "post",
+			dataType: "json",
+			data: {
+				action: "deleteProject",
+				id: id
+			},
+			success: function(result) {
+				if (result.error) self.emit("notify",{text:result.error,type:"alert"});
+				else if (result.success) {
+					self.emit("notify",result.success);
+					self.getProjectsList(true);
+				}
+			},
+			error: function(jqXHR,textStatus,errorThrown) {
+				self.emit("notify",{text:textStatus+errorThrown,type:"alert"});
+			}
+		});
+	}
+
+	ProjectManager.prototype.saveProject = function(project) {
+		var self = this;
+		$.ajax({
+			url: config.server.baseUrl,
+			type: "post",
+			dataType: "json",
+			data: {
+				action: "saveProject",
+				id: project.id(),
+				jsonData: project.toJSON()
+			},
+			success: function(result) {
+				if (result.error) self.emit("notify",{text:result.error,type:"alert"});
+				else if (result.success) self.emit("notify",result.success);
+				project.id(result.id);
+			},
+			error: function(jqXHR,textStatus,errorThrown) {
+				self.emit("notify",{text:textStatus+errorThrown,type:"alert"});
+			}
+		});
 	}
 
 	ProjectManager.prototype.setVar = function(i,v) {
