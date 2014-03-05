@@ -10,6 +10,7 @@ In fact, this is clone of the [Google Maps Engine](https://mapsengine.google.com
 * Setup does not require own hosting - it's possible just to copy files and open index.html locally in browser
 
 [Demo](http://kasheftin.github.io/RoutePlanner/)
+[Habrahabr article](http://habrahabr.ru/post/214743/)
 
 I've spent about 20 hours for developing the v0.1, and implemented only the necessary functionality. There're a lot of things to do, but the current prototype suits me. So I decided that in case of any interest/donation I'll spend 10 more hours and:
 
