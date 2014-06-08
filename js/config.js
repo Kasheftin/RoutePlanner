@@ -62,7 +62,9 @@ define({
 		type: "directions",
 		destinations: ["",""],
 		editing: true,
-		isVisible: true
+		isVisible: true,
+		avoidHighways: false,
+		avoidTolls: false
 	},
 	defaultSearchZoom: 17,
 	cookiesEnabled: false

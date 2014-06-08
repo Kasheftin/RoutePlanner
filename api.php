@@ -1,5 +1,4 @@
 <?php
-
 define(RDIR,dirname(__FILE__));
 
 $action = $_REQUEST["action"];

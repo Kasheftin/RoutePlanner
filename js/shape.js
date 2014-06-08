@@ -18,6 +18,15 @@ define(["jquery","knockout","gmaps","eventEmitter","config","layer","toolbar","s
 			this.preserveViewport = options.preserveViewport;
 			this.totalDistance = ko.observable(0);
 			this.totalDuration = ko.observable(0);
+			this.avoidHighways = ko.observable(options.avoidHighways);
+			this.avoidTolls = ko.observable(options.avoidTolls);
+
+			this.toggleAvoidHighways = function() {
+				self.avoidHighways(!self.avoidHighways());
+			}
+			this.toggleAvoidTolls = function() {
+				self.avoidTolls(!self.avoidTolls());
+			}
 			this.totalDistancePrint = ko.computed(function() {
 				var v = self.totalDistance();
 				var vKm = Math.floor(v/1000);
@@ -32,10 +41,12 @@ define(["jquery","knockout","gmaps","eventEmitter","config","layer","toolbar","s
 				return Math.floor(v/60) + " mins";
 			});
 			this.paramsPrint = ko.computed(function() {
-				var v1 = self.totalDistancePrint();
-				var v2 = self.totalDurationPrint();
-				if (v1.length > 0 && v2.length > 0) return v1 + ", " + v2;
-				return v1 + v2;
+				var ar = [];
+				ar.push(self.totalDistancePrint());
+				ar.push(self.totalDurationPrint());
+				ar.push(self.avoidHighways()?"no hways":"");
+				ar.push(self.avoidTolls()?"no tolls":"");
+				return ar.filter(function(str) { return str.length>0}).join(", ");
 			});
 			this.generateShapeName = function() {
 				var l = self.destinations().length;
@@ -59,22 +70,23 @@ define(["jquery","knockout","gmaps","eventEmitter","config","layer","toolbar","s
 			this.editDirections = function() {
 				self.editing(true);
 			}
-			this.buildDirections = function() {
+			this.buildDirections = function(callback) {
 				var ar = self.destinations();
 				var ar1 = [];
 				for (var i = 1; i < ar.length-1; i++)
 					ar1.push({location:ar[i].name()});
-				console.log("buildDirections",self.destinations().length);
+				console.log("buildDirections, destinations.length=",self.destinations().length);
 				var directionsService = new gmaps.DirectionsService();
 				directionsService.route({
 					origin: ar[0].name(),
 					destination: ar[ar.length-1].name(),
 					waypoints: ar1,
-					travelMode: gmaps.TravelMode.DRIVING
+					travelMode: gmaps.TravelMode.DRIVING,
+					avoidHighways: self.avoidHighways(),
+					avoidTolls: self.avoidTolls()
 				},function(response,status) {
 					if (status == gmaps.DirectionsStatus.OK) {
 						self.data = response;
-						self.redraw();
 						var totalDistance = 0;
 						var totalDuration = 0;
 						response.routes.forEach(function(route) {
@@ -86,11 +98,20 @@ define(["jquery","knockout","gmaps","eventEmitter","config","layer","toolbar","s
 						self.totalDistance(totalDistance);
 						self.totalDuration(totalDuration);
 					}
+					else {
+						console.error("gmaps.DirectionsService error",response,status);
+					}
+					self.directionsDataIsReady = true;
+					callback && callback();
 				});
 			}
 			this.done = function() {
-				this.buildDirections();
-				this.editing(false);
+				if (self.isVisible()) {
+					self.buildDirections(function() {
+						self.redraw();
+					});
+				}
+				self.editing(false);
 			}
 			options.destinations.forEach(function(destinationName) {
 				self.addDestination(destinationName);
@@ -141,11 +162,15 @@ define(["jquery","knockout","gmaps","eventEmitter","config","layer","toolbar","s
 				self.emit("showShape");
 			});
 		}
-		if (this.type() == "directions" && this.map() && this.data) {
-			this.directionsModel = new gmaps.DirectionsRenderer();
-			if (this.preserveViewport) this.directionsModel.setOptions({preserveViewport:this.preserveViewport});
-			this.directionsModel.setMap(this.map());
-			this.directionsModel.setDirections(this.data);
+		if (this.type() == "directions" && this.map()) {
+			var callback = function() {
+				self.directionsModel = new gmaps.DirectionsRenderer();
+				if (self.preserveViewport) self.directionsModel.setOptions({preserveViewport:self.preserveViewport});
+				self.directionsModel.setMap(self.map());
+				self.directionsModel.setDirections(self.data);				
+			}
+			if (this.directionsDataIsReady) callback();
+			else this.buildDirections(callback);
 		}
 	}
 
@@ -195,7 +220,10 @@ define(["jquery","knockout","gmaps","eventEmitter","config","layer","toolbar","s
 			this.destinations().forEach(function(destination) {
 				exportData.destinations.push(destination.name());
 			});
+			exportData.avoidHighways = this.avoidHighways();
+			exportData.avoidTolls = this.avoidTolls();
 		}
+		console.log("exportData",exportData);
 		return exportData;
 	}
 

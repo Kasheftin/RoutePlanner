@@ -78,6 +78,16 @@
                                 <a class="btn btn-default glyphicon glyphicon-remove input-group-addon" href="#" data-bind="visible:$parent.destinations().length>2,click:$parent.removeDestination.bind($parent,$data)"></a>                              
                               </div>
                             </div>
+                            <div class="ro-sub-checkboxes">
+                              <a data-bind="click:toggleAvoidHighways,clickBubble:false" href="#">
+                                <i class="glyphicon" data-bind="css:{'glyphicon-check':avoidHighways(),'glyphicon-unchecked':!avoidHighways()}"></i>
+                                No highways
+                              </a>
+                              <a data-bind="click:toggleAvoidTolls,clickBubble:false" href="#">
+                                <i class="glyphicon" data-bind="css:{'glyphicon-check':avoidTolls(),'glyphicon-unchecked':!avoidTolls()}"></i>
+                                No tolls
+                              </a>
+                            </div>
                             <div class="ro-links-right">
                               <a href="#" data-bind="click:addDestination.bind($data,'')">Add destination</a>
                               <a href="#" data-bind="click:done.bind($data,'')">Apply</a>
@@ -279,7 +289,7 @@
                         <textarea class="form-control" rows="6" placeholder="Paste here the project's JSON data" data-bind="value:loadProjectData"></textarea>
                       </div>
                       <div class="form-group pull-right">
-                        <a class="btn btn-primary" role="button" data-bind="click:loadProject">Load</a>
+                        <a class="btn btn-primary" role="button" data-bind="click:loadProject.bind($data,null)">Load</a>
                         <a class="btn btn-default" role="button" data-bind="click:setVar.bind($data,'page',null)">Cancel</a>
                       </div>
                     </div>

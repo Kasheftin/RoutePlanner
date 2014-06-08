@@ -307,3 +307,12 @@
 .ro-links-right a {
 	padding-left: 5px;
 }
+.ro-sub-checkboxes {
+	font-weight: normal;
+}
+.ro-sub-checkboxes a {
+	padding-right: 5px;
+}
+.ro-sub-checkboxes a:hover {
+	text-decoration: none;
+}

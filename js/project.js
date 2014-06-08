@@ -35,6 +35,8 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 						name: shape.name,
 						layer: l,
 						destinations: shape.destinations,
+						avoidHighways: shape.avoidHighways,
+						avoidTolls: shape.avoidTolls,
 						preserveViewport: true,
 						toBottom: true
 					});
@@ -71,7 +73,6 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 				draggedShape.layer = self.layers()[layerIndex];
 				self.selectedLayer(draggedShape.layer);
 			}
-			console.log(draggedShape.layer,layerIndex);
 		}
 
 		this.descriptionHTML = ko.computed(function() {
@@ -99,6 +100,8 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 			map: self.map,
 			layer: layer,
 			destinations: options.destinations,
+			avoidHighways: options.avoidHighways,
+			avoidTolls: options.avoidTolls,
 			preserveViewport: options.preserveViewport,
 			isVisible: layer.isVisible()
 		}));
