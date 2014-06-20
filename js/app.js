@@ -39,9 +39,10 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 			});
 			project.on("save",function() {
 				self.projectManager.saveProject(project);
-			})
+			});
 			project.initialize(data);
 			self.currentProject(project);
+			if (self.currentProject() && self.windowHeight) self.currentProject().restrictContainerHeight(self.windowHeight);
 		});
 		this.projectManager.on("notify",function(notification) {
 			self.notificationBar.send(notification);
@@ -195,6 +196,13 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 			self.saveMapPosition();
 		});
 		this.map(map);
+
+		this.windowHeight = $(window).height();
+		$(window).on("resize",function() {
+			self.windowHeight = $(this).height();
+			console.log("set windowHeight",self.windowHeight);
+			if (self.currentProject() && self.windowHeight) self.currentProject().restrictContainerHeight(self.windowHeight);
+		});
 	}
 
 	return App;

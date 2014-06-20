@@ -25,7 +25,7 @@
       <!-- ko with: currentProject -->
 
         <!-- Main sheet -->
-        <div class="ro-project">
+        <div class="ro-project" data-bind="style:{maxHeight:maxContainerHeight}">
           <div class="ro-project-inner" data-bind="click:deselectLayer">
             <h4 data-bind="text:name()||'-- No name --'"></h4>
             <p data-bind="html:descriptionHTML"></p>

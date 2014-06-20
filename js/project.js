@@ -11,6 +11,7 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 		this.exportData = ko.observable(null);
 		this.q = ko.observable("");
 		this.selectedShape = ko.observable(null);
+		this.maxContainerHeight = ko.observable();
 		this.toolbar = new Toolbar({
 			layer: this.selectedLayer,
 			map: this.map
@@ -82,6 +83,14 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 			});
 			return html;
 		});
+	}
+
+	Project.prototype.restrictContainerHeight = function(h) {
+		console.log("restrictContainerHeight",h);
+		if (h>0)
+			this.maxContainerHeight((h-50).toString()+"px");
+		else
+			this.maxContainerHeight("auto");
 	}
 
 	Project.prototype.initialize = function(data) {

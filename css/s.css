@@ -101,6 +101,7 @@
 	border-radius: 2px;
 	box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 	cursor: default;
+	overflow: auto;
 }
 .ro-project-inner {
 	margin: 0 10px;
