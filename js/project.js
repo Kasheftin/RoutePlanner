@@ -83,6 +83,34 @@ define(["jquery","knockout","eventEmitter","config","layer","toolbar","shape"],f
 			});
 			return html;
 		});
+
+		this.totalDistance = ko.observable();
+		this.totalDuration = ko.observable();
+		this.totalRecalc = ko.computed(function() {
+			var totalDistance = 0;
+			var totalDuration = 0;
+			self.layers().forEach(function(layer) {
+				layer.shapes().forEach(function(shape) {
+					if (shape.type()=="directions" && shape.totalDistance()>0)
+						totalDistance+=shape.totalDistance();
+					if (shape.type()=="directions" && shape.totalDuration()>0)
+						totalDuration+=shape.totalDuration();
+				});
+			});
+			var printDistance = function(v) {
+				var vKm = Math.floor(v/1000);
+				if (vKm > 9) return vKm + " km";
+				if (vKm > 0) return Math.floor(v/100)/10 + " km";
+				return v + " m";
+			}
+			var printDuration = function(v) {
+				var vHours = Math.floor(v/3600);
+				if (vHours > 0) return vHours + " hours " + Math.floor(v%3600/60) + " mins"; 
+				return Math.floor(v/60) + " mins";
+			}
+			self.totalDistance(printDistance(totalDistance));
+			self.totalDuration(printDuration(totalDuration));
+		});
 	}
 
 	Project.prototype.restrictContainerHeight = function(h) {

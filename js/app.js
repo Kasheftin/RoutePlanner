@@ -200,7 +200,6 @@ define(["jquery","knockout","gmaps","config","projectManager","project","infoWin
 		this.windowHeight = $(window).height();
 		$(window).on("resize",function() {
 			self.windowHeight = $(this).height();
-			console.log("set windowHeight",self.windowHeight);
 			if (self.currentProject() && self.windowHeight) self.currentProject().restrictContainerHeight(self.windowHeight);
 		});
 	}
