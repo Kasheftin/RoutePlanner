@@ -13,7 +13,7 @@ In fact, this is clone of the [Google Maps Engine](https://mapsengine.google.com
 
 [Habrahabr article](http://habrahabr.ru/post/214743/)
 
-I've spent about 20 hours for developing the v0.1, and implemented only the necessary functionality. There're a lot of things to do, but the current prototype suits me. So I decided that in case of any interest/donation I'll spend 10 more hours and:
+I've spent about 20 hours for developing the v0.1, and implemented only the necessary functionality. There're a lot of things to do, but the current prototype suits me. So I decided that in case of any interest I'll spend some more time and:
 
 * Refactor the code and switch google.mapsInfoWindow to the custom one, that works better with knockout
 * Add draggable ability to directions service
@@ -21,4 +21,4 @@ I've spent about 20 hours for developing the v0.1, and implemented only the nece
 * Add polylines and shapes
 * Add image's uploader and parse POI photos and street view
 
-And if You appreciate my work, feel free to [contact me](http://ragneta.com) or make a donation to: webmoney R459280169093, яндекс-кошелек: 4100141897880.  
+And if You appreciate my work, feel free to [contact me](http://ragneta.com).  
