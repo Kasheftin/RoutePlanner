@@ -1,4 +1,12 @@
-Route Planner v0.1
+New Version: route-planner-vue
+=====
+
+Please check the new version of my route planner: [route-planner-vue](https://github.com/Kasheftin/route-planner-vue).
+
+It's build on top of [vue.js](https://vuejs.org), [vuex](https://vuex.vuejs.org), [vue2-google-maps](https://github.com/xkjyeah/vue-google-maps) and [sortablejs](https://github.com/RubaXa/Sortable). It includes more features than the current project: draggable directions, polygons, custom icons, poi, reverse geocoding, readonly and collaborate sharing etc. 
+
+
+Old Version: Route Planner v0.1
 =====
 
 This is simple, free and open source tool for planning routes, that is based on the [Google Maps Api](https://developers.google.com/maps/). 
